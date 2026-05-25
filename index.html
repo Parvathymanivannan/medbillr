@@ -865,7 +865,7 @@
             <div class="panel-card-title">🏢 Cloud Database Deployment API Gateway</div>
             <div class="field-group">
               <label class="field-label">Cloud Database Sync Routing API Endpoint URL</label>
-              <input class="field-input" id="biz-google-url" placeholder="https://script.google.com/macros/s/XXXXX/exec" value="https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec" style="font-family: monospace; font-size:12px; ">
+              <input class="field-input" id="biz-google-url" placeholder="https://script.google.com/macros/s/XXXXX/exec" value="https://script.google.com/macros/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec" style="font-family: monospace; font-size:12px; ">
             </div>
             <button class="btn btn-primary" onclick="saveSettings()">Save Base Settings</button>
           </div>
@@ -935,7 +935,7 @@
 let state = JSON.parse(localStorage.getItem('medbillr_state_v4') || '{}');
 if (!state.documents) state.documents = [];
 // if (!state.settings) state.settings = { 
-//   googleWebAppUrl: 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
+//   googleWebAppUrl: 'https://script.google.com/macros/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
 //   bizClinicName: 'Ardram Therapeutic LLP',
 //   bizClinicMobile: '+91 94460 55000',
 //   bizHospNo: 'REG-ARDRAM-2026',
@@ -952,7 +952,7 @@ if (!state.documents) state.documents = [];
 // 1. FORCE THE SECURE HARDCODED DEPLOYMENT LOGIC AS THE STANDALONE APP ROOT FALLBACK
 if (!state.settings) {
   state.settings = { 
-    googleWebAppUrl: 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
+    googleWebAppUrl: 'https://script.google.com/macros/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
     bizClinicName: 'Ardram Therapeutic LLP',
     bizClinicMobile: '+91 94460 55000',
     bizHospNo: 'REG-ARDRAM-2026',
@@ -966,7 +966,7 @@ if (!state.settings) {
 } else {
   // 2. OVERRIDE TRACE EXTENSIONS IF BROWSER CACHE ALREADY HOLDS AN OLDER BLANK URL FIELD
   if (!state.settings.googleWebAppUrl || state.settings.googleWebAppUrl.trim() === '') {
-    state.settings.googleWebAppUrl = 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec';
+    state.settings.googleWebAppUrl = 'https://script.google.com/macros/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec';
     localStorage.setItem('medbillr_state_v4', JSON.stringify(state)); // Instantly updates browser cache
   }
 }
