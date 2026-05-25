@@ -865,7 +865,7 @@
             <div class="panel-card-title">🏢 Cloud Database Deployment API Gateway</div>
             <div class="field-group">
               <label class="field-label">Cloud Database Sync Routing API Endpoint URL</label>
-              <input class="field-input" id="biz-google-url" placeholder="https://script.google.com/macros/s/XXXXX/exec" value="https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec" style="font-family: monospace; font-size:12px; ">
+              <input class="field-input" id="biz-google-url" placeholder="https://script.google.com/macros/s/XXXXX/exec" style="font-family: monospace; font-size:12px;">
             </div>
             <button class="btn btn-primary" onclick="saveSettings()">Save Base Settings</button>
           </div>
@@ -931,25 +931,9 @@
 <div class="toast" id="toast">Changes saved to secure storage</div>
 
 <script>
-// Load reactive instance environment state schema mapping config data models
 let state = JSON.parse(localStorage.getItem('medbillr_state_v4') || '{}');
 if (!state.documents) state.documents = [];
-// if (!state.settings) state.settings = { 
-//   googleWebAppUrl: 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
-//   bizClinicName: 'Ardram Therapeutic LLP',
-//   bizClinicMobile: '+91 94460 55000',
-//   bizHospNo: 'REG-ARDRAM-2026',
-//   bizGstNo: '07ARDRAM7712M1Z5',
-//   bizAddress:'Neil Rao Towers, EPIP Complex, Whitefield, Bengaluru\nEmail: contact@ardramclinic.org', 
-//   invPrefix:'INV-2026-', 
-//   qutPrefix:'QUT-2026-', 
-//   nextInv:1, 
-//   nextQut:1 
-// };
-// Load reactive instance environment state schema mapping config data models
-if (!state.documents) state.documents = [];
 
-// 1. FORCE THE SECURE HARDCODED DEPLOYMENT LOGIC AS THE STANDALONE APP ROOT FALLBACK
 if (!state.settings) {
   state.settings = { 
     googleWebAppUrl: 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
@@ -964,12 +948,12 @@ if (!state.settings) {
     nextQut: 1 
   };
 } else {
-  // 2. OVERRIDE TRACE EXTENSIONS IF BROWSER CACHE ALREADY HOLDS AN OLDER BLANK URL FIELD
   if (!state.settings.googleWebAppUrl || state.settings.googleWebAppUrl.trim() === '') {
     state.settings.googleWebAppUrl = 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec';
-    localStorage.setItem('medbillr_state_v4', JSON.stringify(state)); // Instantly updates browser cache
+    localStorage.setItem('medbillr_state_v4', JSON.stringify(state));
   }
 }
+
 if (!state.procedures) state.procedures = [
   "Cerebral Palsy",
   "Stroke Rehabilitation",
@@ -1278,7 +1262,6 @@ function saveDoc() {
     }
     commitToStorage();
     
-    // Asynchronous Cloud Database Synchronization Execution Layer
     if(state.settings.googleWebAppUrl) {
       fireToast('⚡ Broadcasting mutations to live spreadsheet drive nodes...');
       fetch(state.settings.googleWebAppUrl, {
@@ -1745,32 +1728,40 @@ if(state.settings.googleWebAppUrl) {
     .then(r => r.json())
     .then(cloudDocs => {
        if(cloudDocs && cloudDocs.length) {
-         // Map incoming Google Sheets keys safely back into the memory cache arrays format framework 
-         state.documents = cloudDocs.map(c => ({
-           id: c["Record ID"],
-           number: c["Document Number"],
-           patientName: c["Patient Name"],
-           patientId: c["Patient ID"],
-           patientAge: c["Age"],
-           patientGender: c["Gender"],
-           patientPhone: c["Phone"],
-           patientAddress: c["Address"],
-           date: c["Treatment Start Date"],
-           due: c["Treatment End Date"],
-           grand: parseFloat(c["Gross Outlay"]) || 0,
-           subtotal: parseFloat(c["Subtotal"]) || 0,
-           discPercent: parseFloat(c["Hospital Subsidy (%)"]) || 0,
-           cessPercent: parseFloat(c["Medical Cess (%)"]) || 0,
-           notes: c["Directives & Notes"],
-           items: JSON.parse(c["Items JSON Dump"] || "[]"),
-           type: (c["Document Number"] || "").indexOf(state.settings.qutPrefix) !== -1 ? 'quote' : 'invoice',
-           status: 'sent'
-         }));
+         // Safe map incoming Google Sheets columns back into active JavaScript variables
+         state.documents = cloudDocs.map(c => {
+           const rawId = c["Record ID"] || c["id"] || "";
+           const rawNum = c["Document Number"] || c["number"] || "";
+           
+           return {
+             id: String(rawId),
+             number: String(rawNum),
+             patientName: c["Patient Name"] || c["patientName"] || "",
+             patientId: c["Patient ID"] || c["patientId"] || "",
+             patientAge: c["Age"] || c["patientAge"] || "",
+             patientGender: c["Gender"] || c["patientGender"] || "Male",
+             patientPhone: c["Phone"] || c["patientPhone"] || "",
+             patientAddress: c["Address"] || c["patientAddress"] || "",
+             date: c["Treatment Start Date"] || c["date"] || "",
+             due: c["Treatment End Date"] || c["due"] || "",
+             grand: parseFloat(c["Gross Outlay"] || c["grand"]) || 0,
+             subtotal: parseFloat(c["Subtotal"] || c["subtotal"]) || 0,
+             discPercent: parseFloat(c["Hospital Subsidy (%)"] || c["discPercent"]) || 0,
+             cessPercent: parseFloat(c["Medical Cess (%)"] || c["cessPercent"]) || 0,
+             notes: c["Directives & Notes"] || c["notes"] || "",
+             items: JSON.parse(c["Items JSON Dump"] || c["items"] || "[]"),
+             type: (String(rawNum).indexOf(state.settings.qutPrefix) !== -1) ? 'quote' : 'invoice',
+             status: c["status"] || 'sent'
+           };
+         });
+         
          commitToStorage();
          drawDashboard();
+         drawDocumentCollectionTable('invoice');
+         drawDocumentCollectionTable('quote');
          refreshCounts();
        }
-    }).catch(err => console.warn("Cloud connection offline, using engine cache frames standard fallbacks.", err));
+    }).catch(err => console.warn("Cloud node synchronization reading skipped. Running local browser cache profiles.", err));
 }
 
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
