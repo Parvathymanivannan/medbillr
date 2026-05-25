@@ -83,7 +83,7 @@
   .btn-success { background: var(--green); color: white; }
   .btn-sm { font-size: 12px; padding: 5px 11px; }
 
-  .app { display: flex; flex: 1; }
+  .app { display: flex; flex: 1; position: relative; }
 
   .sidebar {
     width: 240px;
@@ -92,6 +92,8 @@
     padding: 1.5rem 0;
     display: flex;
     flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 95;
   }
 
   .sidebar-section {
@@ -152,6 +154,8 @@
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
 
   .page-title {
@@ -187,6 +191,7 @@
     gap: 8px;
     margin-bottom: 1.25rem;
     align-items: center;
+    flex-wrap: wrap;
   }
 
   .filter-btn {
@@ -353,7 +358,7 @@
     margin-bottom: 12px;
   }
 
-  .items-section { margin-top: 2rem; }
+  .items-section { margin-top: 2rem; overflow-x: auto; }
 
   .items-header {
     display: grid;
@@ -367,6 +372,7 @@
     font-weight: 700;
     text-transform: uppercase;
     color: var(--ink-2);
+    min-width: 650px;
   }
 
   .items-body {
@@ -374,6 +380,7 @@
     border-top: none;
     border-radius: 0 0 8px 8px;
     overflow: hidden;
+    min-width: 650px;
   }
 
   .line-item {
@@ -506,6 +513,48 @@
   .empty-state { text-align: center; padding: 4rem 2rem; color: var(--ink-3); }
   .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
 
+  /* ── Mobile Layout Optimization & Sidebar Toggle Styles ── */
+  @media (max-width: 768px) {
+    .mobile-menu-toggle {
+      display: block !important;
+    }
+
+    .sidebar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      transform: translateX(-100%);
+      box-shadow: 4px 0 12px rgba(0,0,0,0.15);
+    }
+
+    .sidebar.active {
+      transform: translateX(0);
+    }
+
+    .editor-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .main {
+      padding: 1.5rem 1rem;
+    }
+
+    .patient-split-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    
+    .two-col {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+
   @media print {
     header, .sidebar, .editor-footer, .side-panel, .page-header, .doc-filters, .modal-header, .modal-footer { display: none !important; }
     body, .main { background: white; padding: 0; }
@@ -518,8 +567,8 @@
 
 <header>
   <div class="logo">
-    <!-- <img src="https://cdn.prod.website-files.com/69d868968956a2d99f0d7ee3/69e9ec61dd82a87405a2958d_Ardram_Logo_Horizontal-p-500.png" class="logo-img" alt="Ardram Hospital Logo"> -->
-     <h4 style="color: #fff">MedBillr</h4>
+    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()" style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; display: none; margin-right: 10px; vertical-align: middle;">☰</button> 
+    <h4 style="color: #fff; display: inline-block; vertical-align: middle;">MedBillr</h4>
   </div>
   <div class="header-actions">
     <button class="btn btn-ghost" onclick="showView('settings')">⚙ Settings</button>
@@ -588,7 +637,7 @@
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" id="dashboard-tables-grid">
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--ink-2);margin-bottom:1rem">Recent Patient Discharges & Invoices</div>
           <div id="recent-invoices"></div>
@@ -609,7 +658,7 @@
         <button class="btn btn-primary" onclick="newDocument('invoice')">+ Generate Inpatient Invoice</button>
       </div>
       <div class="doc-filters" id="invoice-filters"></div>
-      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)">
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow); overflow-x: auto;">
         <table class="doc-table">
           <thead>
             <tr>
@@ -630,11 +679,11 @@
         <button class="btn btn-primary" onclick="newDocument('quote')">+ Generate Treatment Quotation</button>
       </div>
       <div class="doc-filters" id="quote-filters"></div>
-      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)">
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow); overflow-x: auto;">
         <table class="doc-table">
           <thead>
             <tr>
-              <th>Quotation No.</th><th>Patient Details</th><th>Treatment Start</th><th>Treatment End</th><th>Estimated Amount</th><th>Status</th><th>Actions</th>
+              <th>Quotation No.</th><th>Patient Details</th><th>Estimated Amount</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="quote-tbody"></tbody>
@@ -740,7 +789,7 @@
             <div style="margin-top: 15px; background: #f0f4f8; padding: 15px; border-radius: 8px; border: 1px dashed var(--accent);">
               <span style="font-size:12px; font-weight:700; color:var(--accent);">📋 Inpatient Room Matrix Breakdown Utility</span>
               <p style="font-size:11.5px; color:var(--ink-2); margin: 4px 0 10px;">Instantly generate and append 28 sequential, day-by-day logs based on your configured Treatment Start Date.</p>
-              <div style="display:flex; gap:10px; align-items:center;">
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
                 <select class="field-input" id="matrix-diagnosis-select" style="width:220px; padding:6px; font-size:12px; background:white;"></select>
                 <input type="number" class="field-input" id="matrix-rate-input" placeholder="Daily Charge Rate" style="width:150px; padding:6px; font-size:12px; background:white;">
                 <button type="button" class="btn btn-primary btn-sm" onclick="injectTwentyEightDaySequentialMatrix()">Generate 28-Day Chronological Logs</button>
@@ -810,8 +859,17 @@
         </div>
       </div>
       
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;" id="settings-layout-grid">
         <div>
+          <div class="panel-card">
+            <div class="panel-card-title">🏢 Cloud Database Deployment API Gateway</div>
+            <div class="field-group">
+              <label class="field-label">Cloud Database Sync Routing API Endpoint URL</label>
+              <input class="field-input" id="biz-google-url" placeholder="https://script.google.com/macros/s/XXXXX/exec" value="https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec" style="font-family: monospace; font-size:12px; ">
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Base Settings</button>
+          </div>
+
           <div class="panel-card">
             <div class="panel-card-title">🏢 Clinic Identification Profile</div>
             <div class="field-group"><label class="field-label">Clinic Registered Name</label><input class="field-input" id="biz-clinic-name" placeholder="e.g. Ardram Medical Center"></div>
@@ -873,19 +931,45 @@
 <div class="toast" id="toast">Changes saved to secure storage</div>
 
 <script>
+// Load reactive instance environment state schema mapping config data models
 let state = JSON.parse(localStorage.getItem('medbillr_state_v4') || '{}');
 if (!state.documents) state.documents = [];
-if (!state.settings) state.settings = { 
-  bizClinicName: 'Ardram Therapeutic LLP',
-  bizClinicMobile: '+91 94460 55000',
-  bizHospNo: 'REG-ARDRAM-2026',
-  bizGstNo: '07ARDRAM7712M1Z5',
-  bizAddress:'Neil Rao Towers, EPIP Complex, Whitefield, Bengaluru\nEmail: contact@ardramclinic.org', 
-  invPrefix:'INV-2026-', 
-  qutPrefix:'QUT-2026-', 
-  nextInv:1, 
-  nextQut:1 
-};
+// if (!state.settings) state.settings = { 
+//   googleWebAppUrl: 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
+//   bizClinicName: 'Ardram Therapeutic LLP',
+//   bizClinicMobile: '+91 94460 55000',
+//   bizHospNo: 'REG-ARDRAM-2026',
+//   bizGstNo: '07ARDRAM7712M1Z5',
+//   bizAddress:'Neil Rao Towers, EPIP Complex, Whitefield, Bengaluru\nEmail: contact@ardramclinic.org', 
+//   invPrefix:'INV-2026-', 
+//   qutPrefix:'QUT-2026-', 
+//   nextInv:1, 
+//   nextQut:1 
+// };
+// Load reactive instance environment state schema mapping config data models
+if (!state.documents) state.documents = [];
+
+// 1. FORCE THE SECURE HARDCODED DEPLOYMENT LOGIC AS THE STANDALONE APP ROOT FALLBACK
+if (!state.settings) {
+  state.settings = { 
+    googleWebAppUrl: 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
+    bizClinicName: 'Ardram Therapeutic LLP',
+    bizClinicMobile: '+91 94460 55000',
+    bizHospNo: 'REG-ARDRAM-2026',
+    bizGstNo: '07ARDRAM7712M1Z5',
+    bizAddress: 'Neil Rao Towers, EPIP Complex, Whitefield, Bengaluru\nEmail: contact@ardramclinic.org', 
+    invPrefix: 'INV-2026-', 
+    qutPrefix: 'QUT-2026-', 
+    nextInv: 1, 
+    nextQut: 1 
+  };
+} else {
+  // 2. OVERRIDE TRACE EXTENSIONS IF BROWSER CACHE ALREADY HOLDS AN OLDER BLANK URL FIELD
+  if (!state.settings.googleWebAppUrl || state.settings.googleWebAppUrl.trim() === '') {
+    state.settings.googleWebAppUrl = 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec';
+    localStorage.setItem('medbillr_state_v4', JSON.stringify(state)); // Instantly updates browser cache
+  }
+}
 if (!state.procedures) state.procedures = [
   "Cerebral Palsy",
   "Stroke Rehabilitation",
@@ -896,7 +980,17 @@ let currentDocType = 'invoice';
 let editingId = null;
 let items = [];
 
-function commitToStorage() { localStorage.setItem('medbillr_state_v4', JSON.stringify(state)); }
+function toggleMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sidebar.classList.toggle('active');
+  }
+}
+
+function commitToStorage() { 
+  localStorage.setItem('medbillr_state_v4', JSON.stringify(state)); 
+}
+
 function getCurrencySign() { return document.getElementById('currency-select')?.value || '₹'; }
 function formatValue(n, sign) { return `${sign || getCurrencySign()}${Number(n).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`; }
 
@@ -913,6 +1007,11 @@ function showView(targetView) {
   if (targetView === 'quotes') drawDocumentCollectionTable('quote');
   if (targetView === 'settings') drawSettingsPanel();
   
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sidebar.classList.remove('active');
+  }
+  
   refreshCounts();
 }
 
@@ -920,7 +1019,6 @@ function newDocument(forcedType) {
   editingId = null;
   items = [{ desc:'', category: state.procedures[0] || '', qty:1, price:0 }];
   
-  // Safe clear arrays inputs logic
   ['p-name', 'p-id', 'p-age', 'p-phone', 'p-address'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
@@ -972,7 +1070,6 @@ function setDocType(targetType) {
   const dateLabelEl = document.getElementById('date-label');
   const grandEl = document.getElementById('grand-label');
   
-  // Find the closest row containing the date fields to toggle visibility easily
   const dateRowEl = document.getElementById('doc-date')?.closest('.two-col');
   
   if (targetType === 'invoice') {
@@ -980,53 +1077,15 @@ function setDocType(targetType) {
     if(labelEl) labelEl.textContent = 'Invoice Reference Sequence';
     if(dateLabelEl) dateLabelEl.textContent = 'Treatment Start Date';
     if(grandEl) grandEl.textContent = 'Total Outlay Payable';
-    if(dateRowEl) dateRowEl.style.display = 'grid'; // Show dates for Invoice
+    if(dateRowEl) dateRowEl.style.display = 'grid';
   } else {
     if(titleEl) titleEl.textContent = 'Treatment Costing Quotation';
     if(labelEl) labelEl.textContent = 'Quotation Evaluation Code';
     if(grandEl) grandEl.textContent = 'Estimated Treatment Outlay';
-    if(dateRowEl) dateRowEl.style.display = 'none'; // Hide dates entirely for Quotation
+    if(dateRowEl) dateRowEl.style.display = 'none';
   }
   recalc();
 }
-
-// function setDocType(targetType) {
-//   currentDocType = targetType;
-  
-//   const invBtn = document.getElementById('type-invoice');
-//   const qutBtn = document.getElementById('type-quote');
-//   if(invBtn) invBtn.classList.toggle('active', targetType === 'invoice');
-//   if(qutBtn) qutBtn.classList.toggle('active', targetType === 'quote');
-  
-//   const rules = state.settings;
-//   const runningSerial = targetType === 'invoice' ? String(rules.nextInv || 1).padStart(3, '0') : String(rules.nextQut || 1).padStart(3, '0');
-//   const matchedPrefix = targetType === 'invoice' ? (rules.invPrefix || 'INV-') : (rules.qutPrefix || 'QUT-');
-  
-//   if (!editingId && document.getElementById('doc-num-display')) {
-//     document.getElementById('doc-num-display').textContent = `#${matchedPrefix}${runningSerial}`;
-//   }
-  
-//   const titleEl = document.getElementById('editor-page-title');
-//   const labelEl = document.getElementById('doc-num-label');
-//   const dateEl = document.getElementById('date-label');
-//   const dueEl = document.getElementById('due-label');
-//   const grandEl = document.getElementById('grand-label');
-  
-//   if (targetType === 'invoice') {
-//     if(titleEl) titleEl.textContent = 'Patient Discharge Billing System';
-//     if(labelEl) labelEl.textContent = 'Invoice Reference Sequence';
-//     if(dateEl) dateEl.textContent = 'Treatment Start Date';
-//     if(dueEl) dueEl.textContent = 'Treatment End Date';
-//     if(grandEl) grandEl.textContent = 'Total Outlay Payable';
-//   } else {
-//     if(titleEl) titleEl.textContent = 'Treatment Costing Quotation';
-//     if(labelEl) labelEl.textContent = 'Quotation Evaluation Code';
-//     if(dateEl) dateEl.textContent = 'Treatment Start Date';
-//     if(dueEl) dueEl.textContent = 'Treatment End Date';
-//     if(grandEl) grandEl.textContent = 'Estimated Treatment Outlay';
-//   }
-//   recalc();
-// }
 
 function syncTreatmentDates() {
   const startDate = document.getElementById('doc-date')?.value;
@@ -1182,7 +1241,6 @@ function harvestEditorData() {
     number: document.getElementById('doc-num-display')?.textContent || '#000',
     fromAddress: document.getElementById('from-address')?.value || '',
     
-    // Explicit mappings for patient demographics fields
     patientName: document.getElementById('p-name')?.value || '',
     patientId: document.getElementById('p-id')?.value || '',
     patientAge: document.getElementById('p-age')?.value || '',
@@ -1219,7 +1277,25 @@ function saveDoc() {
       }
     }
     commitToStorage();
-    fireToast('✓ Entry successfully saved to clinic databases');
+    
+    // Asynchronous Cloud Database Synchronization Execution Layer
+    if(state.settings.googleWebAppUrl) {
+      fireToast('⚡ Broadcasting mutations to live spreadsheet drive nodes...');
+      fetch(state.settings.googleWebAppUrl, {
+        method: 'POST',
+        mode: 'cors',
+        body: JSON.stringify(packingObj)
+      })
+      .then(r => r.json())
+      .then(res => {
+         if(res.status === 'success') fireToast('✓ Secure cloud database mirror synchronization complete');
+         else console.error(res.message);
+      })
+      .catch(e => console.error("Cloud Node Network Interruption: ", e));
+    } else {
+      fireToast('✓ Entry captured securely in standard browser environment storage caches');
+    }
+    
     refreshCounts();
     showView(packingObj.type === 'invoice' ? 'invoices' : 'quotes');
   } catch(e) {
@@ -1242,10 +1318,6 @@ function constructPrintReadyHTML(targetObj) {
   const currentSign = targetObj.currency || '₹';
   const labelMapping = targetObj.type === 'invoice' ? 'Patient Invoice' : 'Quotation';
   
-  // let temporalLogsBlock = `
-  //   <strong>Treatment Start Date:</strong> ${targetObj.date || '—'}<br>
-  //   <strong>Treatment End Date:</strong> ${targetObj.due || '—'}
-  // `;
   let temporalLogsBlock = '';
   if (targetObj.type === 'invoice') {
     temporalLogsBlock = `
@@ -1253,7 +1325,6 @@ function constructPrintReadyHTML(targetObj) {
       <strong>Treatment End Date:</strong> ${targetObj.due || '—'}
     `;
   } else {
-    // Strips out dates completely for quotation view, rendering only an empty text footprint block
     temporalLogsBlock = ``;
   }
 
@@ -1323,7 +1394,7 @@ function constructPrintReadyHTML(targetObj) {
       </tbody>
     </table>
 
-    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:40px; align-items:start;">
+    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:40px; align-items:start;" id="preview-totals-grid">
       <div>
         ${targetObj.notes ? `
           <div class="preview-notes-pane">
@@ -1410,12 +1481,12 @@ function drawDocumentCollectionTable(targetType) {
   }
 
   targetTbody.innerHTML = [...collection].reverse().map(doc => {
+    let contextualDateLayoutCells = targetType === 'invoice' ? `<td>${doc.date || '—'}</td><td>${doc.due || '—'}</td>` : ``;
     return `
       <tr onclick="editDoc('${doc.id}')">
         <td><span style="font-family:'DM Mono', monospace; font-weight:600; color:var(--accent);">${doc.number}</span></td>
         <td><strong>${doc.patientName || '— Unnamed Patient —'}</strong></td>
-        <td>${doc.date || '—'}</td>
-        <td>${doc.due || '—'}</td>
+        ${contextualDateLayoutCells}
         <td><span style="font-family:'DM Mono', monospace; font-weight:600;">${formatValue(doc.grand, doc.currency)}</span></td>
         <td><span class="status-badge status-${doc.status}"><span class="status-dot"></span>${doc.status}</span></td>
         <td>
@@ -1469,12 +1540,12 @@ function renderScopedRows(targetType, subset) {
   }
   
   targetTbody.innerHTML = [...subset].reverse().map(doc => {
+    let contextualDateLayoutCells = targetType === 'invoice' ? `<td>${doc.date || '—'}</td><td>${doc.due || '—'}</td>` : ``;
     return `
       <tr onclick="editDoc('${doc.id}')">
         <td><span style="font-family:'DM Mono', monospace; font-weight:600; color:var(--accent);">${doc.number}</span></td>
         <td><strong>${doc.patientName || '— Unnamed Patient —'}</strong></td>
-        <td>${doc.date || '—'}</td>
-        <td>${doc.due || '—'}</td>
+        ${contextualDateLayoutCells}
         <td><span style="font-family:'DM Mono', monospace; font-weight:600;">${formatValue(doc.grand, doc.currency)}</span></td>
         <td><span class="status-badge status-${doc.status}"><span class="status-dot"></span>${doc.status}</span></td>
         <td>
@@ -1510,7 +1581,6 @@ function editDoc(id) {
   
   if(document.getElementById('from-address')) document.getElementById('from-address').value = targetObj.fromAddress || '';
   
-  // High-reliability restoration array bindings
   if(document.getElementById('p-name')) document.getElementById('p-name').value = targetObj.patientName || '';
   if(document.getElementById('p-id')) document.getElementById('p-id').value = targetObj.patientId || '';
   if(document.getElementById('p-age')) document.getElementById('p-age').value = targetObj.patientAge || '';
@@ -1587,6 +1657,7 @@ function drawDashboard() {
 
 function drawSettingsPanel() {
   const configs = state.settings;
+  if(document.getElementById('biz-google-url')) document.getElementById('biz-google-url').value = configs.googleWebAppUrl || '';
   if(document.getElementById('biz-clinic-name')) document.getElementById('biz-clinic-name').value = configs.bizClinicName || '';
   if(document.getElementById('biz-clinic-mobile')) document.getElementById('biz-clinic-mobile').value = configs.bizClinicMobile || '';
   if(document.getElementById('biz-hosp-no')) document.getElementById('biz-hosp-no').value = configs.bizHospNo || '';
@@ -1602,6 +1673,7 @@ function drawSettingsPanel() {
 
 function saveSettings() {
   state.settings = {
+    googleWebAppUrl: document.getElementById('biz-google-url')?.value || '',
     bizClinicName: document.getElementById('biz-clinic-name')?.value || '',
     bizClinicMobile: document.getElementById('biz-clinic-mobile')?.value || '',
     bizHospNo: document.getElementById('biz-hosp-no')?.value || '',
@@ -1662,10 +1734,44 @@ function clearClinicalBuffersOnly() {
   recalc();
 }
 
-// Bootstrap Initialization
+// Global Application Core Bootstrap Routines
 refreshCounts();
 populateMatrixSelectors();
 drawDashboard();
+
+// Query cloud sheets node instance data frames dynamically upon startup initialization if link is present
+if(state.settings.googleWebAppUrl) {
+  fetch(state.settings.googleWebAppUrl)
+    .then(r => r.json())
+    .then(cloudDocs => {
+       if(cloudDocs && cloudDocs.length) {
+         // Map incoming Google Sheets keys safely back into the memory cache arrays format framework 
+         state.documents = cloudDocs.map(c => ({
+           id: c["Record ID"],
+           number: c["Document Number"],
+           patientName: c["Patient Name"],
+           patientId: c["Patient ID"],
+           patientAge: c["Age"],
+           patientGender: c["Gender"],
+           patientPhone: c["Phone"],
+           patientAddress: c["Address"],
+           date: c["Treatment Start Date"],
+           due: c["Treatment End Date"],
+           grand: parseFloat(c["Gross Outlay"]) || 0,
+           subtotal: parseFloat(c["Subtotal"]) || 0,
+           discPercent: parseFloat(c["Hospital Subsidy (%)"]) || 0,
+           cessPercent: parseFloat(c["Medical Cess (%)"]) || 0,
+           notes: c["Directives & Notes"],
+           items: JSON.parse(c["Items JSON Dump"] || "[]"),
+           type: (c["Document Number"] || "").indexOf(state.settings.qutPrefix) !== -1 ? 'quote' : 'invoice',
+           status: 'sent'
+         }));
+         commitToStorage();
+         drawDashboard();
+         refreshCounts();
+       }
+    }).catch(err => console.warn("Cloud connection offline, using engine cache frames standard fallbacks.", err));
+}
 
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
