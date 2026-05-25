@@ -865,7 +865,7 @@
             <div class="panel-card-title">🏢 Cloud Database Deployment API Gateway</div>
             <div class="field-group">
               <label class="field-label">Cloud Database Sync Routing API Endpoint URL</label>
-              <input class="field-input" id="biz-google-url" placeholder="https://script.google.com/macros/s/XXXXX/exec" style="font-family: monospace; font-size:12px;">
+              <input class="field-input" id="biz-google-url" placeholder="https://script.google.com/macros/s/XXXXX/exec" value="https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec" style="font-family: monospace; font-size:12px; ">
             </div>
             <button class="btn btn-primary" onclick="saveSettings()">Save Base Settings</button>
           </div>
@@ -931,9 +931,25 @@
 <div class="toast" id="toast">Changes saved to secure storage</div>
 
 <script>
+// Load reactive instance environment state schema mapping config data models
 let state = JSON.parse(localStorage.getItem('medbillr_state_v4') || '{}');
 if (!state.documents) state.documents = [];
+// if (!state.settings) state.settings = { 
+//   googleWebAppUrl: 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
+//   bizClinicName: 'Ardram Therapeutic LLP',
+//   bizClinicMobile: '+91 94460 55000',
+//   bizHospNo: 'REG-ARDRAM-2026',
+//   bizGstNo: '07ARDRAM7712M1Z5',
+//   bizAddress:'Neil Rao Towers, EPIP Complex, Whitefield, Bengaluru\nEmail: contact@ardramclinic.org', 
+//   invPrefix:'INV-2026-', 
+//   qutPrefix:'QUT-2026-', 
+//   nextInv:1, 
+//   nextQut:1 
+// };
+// Load reactive instance environment state schema mapping config data models
+if (!state.documents) state.documents = [];
 
+// 1. FORCE THE SECURE HARDCODED DEPLOYMENT LOGIC AS THE STANDALONE APP ROOT FALLBACK
 if (!state.settings) {
   state.settings = { 
     googleWebAppUrl: 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec',
@@ -948,12 +964,12 @@ if (!state.settings) {
     nextQut: 1 
   };
 } else {
+  // 2. OVERRIDE TRACE EXTENSIONS IF BROWSER CACHE ALREADY HOLDS AN OLDER BLANK URL FIELD
   if (!state.settings.googleWebAppUrl || state.settings.googleWebAppUrl.trim() === '') {
     state.settings.googleWebAppUrl = 'https://script.google.com/a/macros/ardram.com/s/AKfycbwpJGq23ETAeEyY1xI5Y9UZBOji0H9ZzNNvQMvOuNr8idUcXWkCndG8ZwwBiBwoI8ai0Q/exec';
-    localStorage.setItem('medbillr_state_v4', JSON.stringify(state));
+    localStorage.setItem('medbillr_state_v4', JSON.stringify(state)); // Instantly updates browser cache
   }
 }
-
 if (!state.procedures) state.procedures = [
   "Cerebral Palsy",
   "Stroke Rehabilitation",
@@ -1248,7 +1264,16 @@ function harvestEditorData() {
 function saveDoc() {
   try {
     const packingObj = harvestEditorData();
-    const matchedIndex = state.documents.findIndex(d => d.id === packingObj.id);
+    
+    if (!packingObj.patientId || packingObj.patientId.trim() === "") {
+      alert("⚠️ Patient ID / File No. is mandatory to secure database alignment.");
+      return;
+    }
+
+    // Match existing logs in local state via Patient ID instead of background timestamp strings
+    const matchedIndex = state.documents.findIndex(d => 
+      String(d.patientId).trim().toLowerCase() === String(packingObj.patientId).trim().toLowerCase()
+    );
     
     if (matchedIndex >= 0) {
       state.documents[matchedIndex] = packingObj;
@@ -1271,20 +1296,66 @@ function saveDoc() {
       })
       .then(r => r.json())
       .then(res => {
-         if(res.status === 'success') fireToast('✓ Secure cloud database mirror synchronization complete');
-         else console.error(res.message);
+         if(res.status === 'success') {
+           fireToast('✓ Secure cloud database mirror synchronization complete');
+           // Immediately trigger a clean layout update from fresh state
+           showView(packingObj.type === 'invoice' ? 'invoices' : 'quotes');
+         } else {
+           console.error(res.message);
+         }
       })
       .catch(e => console.error("Cloud Node Network Interruption: ", e));
     } else {
       fireToast('✓ Entry captured securely in standard browser environment storage caches');
+      showView(packingObj.type === 'invoice' ? 'invoices' : 'quotes');
     }
     
-    refreshCounts();
-    showView(packingObj.type === 'invoice' ? 'invoices' : 'quotes');
   } catch(e) {
     console.error(e);
   }
 }
+
+// function saveDoc() {
+//   try {
+//     const packingObj = harvestEditorData();
+//     const matchedIndex = state.documents.findIndex(d => d.id === packingObj.id);
+    
+//     if (matchedIndex >= 0) {
+//       state.documents[matchedIndex] = packingObj;
+//     } else {
+//       state.documents.push(packingObj);
+//       if (packingObj.type === 'invoice') {
+//         state.settings.nextInv = (parseInt(state.settings.nextInv) || 1) + 1;
+//       } else {
+//         state.settings.nextQut = (parseInt(state.settings.nextQut) || 1) + 1;
+//       }
+//     }
+//     commitToStorage();
+    
+//     // Asynchronous Cloud Database Synchronization Execution Layer
+//     if(state.settings.googleWebAppUrl) {
+//       fireToast('⚡ Broadcasting mutations to live spreadsheet drive nodes...');
+//       fetch(state.settings.googleWebAppUrl, {
+//         method: 'POST',
+//         mode: 'cors',
+//         body: JSON.stringify(packingObj)
+//       })
+//       .then(r => r.json())
+//       .then(res => {
+//          if(res.status === 'success') fireToast('✓ Secure cloud database mirror synchronization complete');
+//          else console.error(res.message);
+//       })
+//       .catch(e => console.error("Cloud Node Network Interruption: ", e));
+//     } else {
+//       fireToast('✓ Entry captured securely in standard browser environment storage caches');
+//     }
+    
+//     refreshCounts();
+//     showView(packingObj.type === 'invoice' ? 'invoices' : 'quotes');
+//   } catch(e) {
+//     console.error(e);
+//   }
+// }
 
 function previewDoc() {
   try {
@@ -1476,7 +1547,9 @@ function drawDocumentCollectionTable(targetType) {
           <div style="display:flex; gap:6px;" onclick="event.stopPropagation()">
             <button class="btn btn-outline btn-sm" onclick="toggleStatusCycle('${doc.id}')">Cycle State</button>
             <button class="btn btn-outline btn-sm" onclick="editDoc('${doc.id}')">Modify</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteDoc('${doc.id}')">✕</button>
+            
+            
+
           </div>
         </td>
       </tr>
@@ -1535,7 +1608,7 @@ function renderScopedRows(targetType, subset) {
           <div style="display:flex; gap:6px;" onclick="event.stopPropagation()">
             <button class="btn btn-outline btn-sm" onclick="toggleStatusCycle('${doc.id}')">Cycle State</button>
             <button class="btn btn-outline btn-sm" onclick="editDoc('${doc.id}')">Modify</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteDoc('${doc.id}')">✕</button>
+           
           </div>
         </td>
       </tr>
@@ -1554,41 +1627,7 @@ function toggleStatusCycle(id) {
   fireToast(`Status changed → ${targetObj.status.toUpperCase()}`);
 }
 
-// function editDoc(id) {
-//   const targetObj = state.documents.find(d => d.id === id);
-//   if (!targetObj) return;
-  
-//   editingId = id;
-//   items = JSON.parse(JSON.stringify(targetObj.items || []));
-//   currentDocType = targetObj.type;
-  
-//   if(document.getElementById('from-address')) document.getElementById('from-address').value = targetObj.fromAddress || '';
-  
-//   if(document.getElementById('p-name')) document.getElementById('p-name').value = targetObj.patientName || '';
-//   if(document.getElementById('p-id')) document.getElementById('p-id').value = targetObj.patientId || '';
-//   if(document.getElementById('p-age')) document.getElementById('p-age').value = targetObj.patientAge || '';
-//   if(document.getElementById('p-gender')) document.getElementById('p-gender').value = targetObj.patientGender || 'Male';
-//   if(document.getElementById('p-phone')) document.getElementById('p-phone').value = targetObj.patientPhone || '';
-//   if(document.getElementById('p-address')) document.getElementById('p-address').value = targetObj.patientAddress || '';
-  
-//   if(document.getElementById('doc-date')) document.getElementById('doc-date').value = targetObj.date || '';
-//   if(document.getElementById('doc-due')) document.getElementById('doc-due').value = targetObj.due || '';
-//   if(document.getElementById('doc-notes')) document.getElementById('doc-notes').value = targetObj.notes || '';
-//   if(document.getElementById('doc-num-display')) document.getElementById('doc-num-display').textContent = targetObj.number || '';
-//   if(document.getElementById('currency-select')) document.getElementById('currency-select').value = targetObj.currency || '₹';
-  
-//   if(document.getElementById('chk-discount')) document.getElementById('chk-discount').checked = targetObj.discTriggered || false;
-//   if(document.getElementById('discount-pct')) document.getElementById('discount-pct').value = targetObj.discPercent || 0;
-//   if(document.getElementById('chk-tax1')) document.getElementById('chk-tax1').checked = targetObj.cessTriggered || false;
-//   if(document.getElementById('tax1-pct')) document.getElementById('tax1-pct').value = targetObj.cessPercent || 5;
-  
-//   setDocType(targetObj.type);
-//   populateMatrixSelectors();
-//   drawAllocatedLineFields();
-//   showView('editor');
-// }
-
-  function editDoc(id) {
+function editDoc(id) {
   // Safe-string the incoming look-up parameter to match cloud format structures
   const targetIdStr = String(id).trim();
 
@@ -1634,6 +1673,40 @@ function toggleStatusCycle(id) {
   drawAllocatedLineFields();
   showView('editor');
 }
+
+// function editDoc(id) {
+//   const targetObj = state.documents.find(d => d.id === id);
+//   if (!targetObj) return;
+  
+//   editingId = id;
+//   items = JSON.parse(JSON.stringify(targetObj.items || []));
+//   currentDocType = targetObj.type;
+  
+//   if(document.getElementById('from-address')) document.getElementById('from-address').value = targetObj.fromAddress || '';
+  
+//   if(document.getElementById('p-name')) document.getElementById('p-name').value = targetObj.patientName || '';
+//   if(document.getElementById('p-id')) document.getElementById('p-id').value = targetObj.patientId || '';
+//   if(document.getElementById('p-age')) document.getElementById('p-age').value = targetObj.patientAge || '';
+//   if(document.getElementById('p-gender')) document.getElementById('p-gender').value = targetObj.patientGender || 'Male';
+//   if(document.getElementById('p-phone')) document.getElementById('p-phone').value = targetObj.patientPhone || '';
+//   if(document.getElementById('p-address')) document.getElementById('p-address').value = targetObj.patientAddress || '';
+  
+//   if(document.getElementById('doc-date')) document.getElementById('doc-date').value = targetObj.date || '';
+//   if(document.getElementById('doc-due')) document.getElementById('doc-due').value = targetObj.due || '';
+//   if(document.getElementById('doc-notes')) document.getElementById('doc-notes').value = targetObj.notes || '';
+//   if(document.getElementById('doc-num-display')) document.getElementById('doc-num-display').textContent = targetObj.number || '';
+//   if(document.getElementById('currency-select')) document.getElementById('currency-select').value = targetObj.currency || '₹';
+  
+//   if(document.getElementById('chk-discount')) document.getElementById('chk-discount').checked = targetObj.discTriggered || false;
+//   if(document.getElementById('discount-pct')) document.getElementById('discount-pct').value = targetObj.discPercent || 0;
+//   if(document.getElementById('chk-tax1')) document.getElementById('chk-tax1').checked = targetObj.cessTriggered || false;
+//   if(document.getElementById('tax1-pct')) document.getElementById('tax1-pct').value = targetObj.cessPercent || 5;
+  
+//   setDocType(targetObj.type);
+//   populateMatrixSelectors();
+//   drawAllocatedLineFields();
+//   showView('editor');
+// }
 
 function deleteDoc(id) {
   if (!confirm('Purge this tracking document file?')) return;
@@ -1775,40 +1848,32 @@ if(state.settings.googleWebAppUrl) {
     .then(r => r.json())
     .then(cloudDocs => {
        if(cloudDocs && cloudDocs.length) {
-         // Safe map incoming Google Sheets columns back into active JavaScript variables
-         state.documents = cloudDocs.map(c => {
-           const rawId = c["Record ID"] || c["id"] || "";
-           const rawNum = c["Document Number"] || c["number"] || "";
-           
-           return {
-             id: String(rawId),
-             number: String(rawNum),
-             patientName: c["Patient Name"] || c["patientName"] || "",
-             patientId: c["Patient ID"] || c["patientId"] || "",
-             patientAge: c["Age"] || c["patientAge"] || "",
-             patientGender: c["Gender"] || c["patientGender"] || "Male",
-             patientPhone: c["Phone"] || c["patientPhone"] || "",
-             patientAddress: c["Address"] || c["patientAddress"] || "",
-             date: c["Treatment Start Date"] || c["date"] || "",
-             due: c["Treatment End Date"] || c["due"] || "",
-             grand: parseFloat(c["Gross Outlay"] || c["grand"]) || 0,
-             subtotal: parseFloat(c["Subtotal"] || c["subtotal"]) || 0,
-             discPercent: parseFloat(c["Hospital Subsidy (%)"] || c["discPercent"]) || 0,
-             cessPercent: parseFloat(c["Medical Cess (%)"] || c["cessPercent"]) || 0,
-             notes: c["Directives & Notes"] || c["notes"] || "",
-             items: JSON.parse(c["Items JSON Dump"] || c["items"] || "[]"),
-             type: (String(rawNum).indexOf(state.settings.qutPrefix) !== -1) ? 'quote' : 'invoice',
-             status: c["status"] || 'sent'
-           };
-         });
-         
+         // Map incoming Google Sheets keys safely back into the memory cache arrays format framework 
+         state.documents = cloudDocs.map(c => ({
+           id: c["Record ID"],
+           number: c["Document Number"],
+           patientName: c["Patient Name"],
+           patientId: c["Patient ID"],
+           patientAge: c["Age"],
+           patientGender: c["Gender"],
+           patientPhone: c["Phone"],
+           patientAddress: c["Address"],
+           date: c["Treatment Start Date"],
+           due: c["Treatment End Date"],
+           grand: parseFloat(c["Gross Outlay"]) || 0,
+           subtotal: parseFloat(c["Subtotal"]) || 0,
+           discPercent: parseFloat(c["Hospital Subsidy (%)"]) || 0,
+           cessPercent: parseFloat(c["Medical Cess (%)"]) || 0,
+           notes: c["Directives & Notes"],
+           items: JSON.parse(c["Items JSON Dump"] || "[]"),
+           type: (c["Document Number"] || "").indexOf(state.settings.qutPrefix) !== -1 ? 'quote' : 'invoice',
+           status: 'sent'
+         }));
          commitToStorage();
          drawDashboard();
-         drawDocumentCollectionTable('invoice');
-         drawDocumentCollectionTable('quote');
          refreshCounts();
        }
-    }).catch(err => console.warn("Cloud node synchronization reading skipped. Running local browser cache profiles.", err));
+    }).catch(err => console.warn("Cloud connection offline, using engine cache frames standard fallbacks.", err));
 }
 
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
