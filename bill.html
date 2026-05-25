@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedBillr — Clinic Invoices & Quotations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1611;
+    --ink-2: #4a4540;
+    --ink-3: #8a8580;
+    --paper: #faf8f4;
+    --paper-2: #f2efe8;
+    --paper-3: #e8e4da;
+    --accent: #1b4f8a;
+    --accent-light: #e8f0fb;
+    --accent-dark: #123761;
+    --green: #2d6a4f;
+    --green-light: #e8f5ee;
+    --red: #9b2335;
+    --red-light: #fbeaec;
+    --border: #ddd9ce;
+    --shadow: 0 2px 12px rgba(26,22,17,0.06);
+    --shadow-lg: 0 8px 32px rgba(26,22,17,0.1);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: #0f2541;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 65px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo-img {
+    height: 40px;
+    object-fit: contain;
+  }
+
+  .header-actions { display: flex; gap: 10px; }
+
+  .btn {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+
+  .btn-ghost { background: rgba(255,255,255,0.1); color: white; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.18); }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
+  .btn-outline:hover { background: var(--paper-2); border-color: var(--ink-3); }
+  .btn-danger { background: var(--red); color: white; font-size: 12px; padding: 6px 12px; }
+  .btn-success { background: var(--green); color: white; }
+  .btn-sm { font-size: 12px; padding: 5px 11px; }
+
+  .app { display: flex; flex: 1; }
+
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: #0f2541;
+    padding: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-section {
+    padding: 0 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    padding: 0 0.5rem;
+    margin-bottom: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.65);
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.12s;
+  }
+
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.06); }
+  .nav-item.active { color: white; background: var(--accent); }
+  .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+
+  .nav-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 20px;
+  }
+
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem 2.5rem;
+    background: var(--paper);
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .page-subtitle { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+  }
+
+  .stat-label { font-size: 12px; color: var(--ink-3); font-weight: 600; text-transform: uppercase; }
+  .stat-value { font-size: 1.6rem; font-family: 'DM Mono', monospace; color: var(--ink); margin: 6px 0 4px; font-weight: 600; }
+  .stat-sub { font-size: 12px; color: var(--green); }
+
+  .doc-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+    align-items: center;
+  }
+
+  .filter-btn {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  .filter-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
+
+  .search-box {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+  }
+
+  .search-box input {
+    border: none;
+    outline: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    width: 180px;
+  }
+
+  .doc-table { width: 100%; border-collapse: collapse; }
+
+  .doc-table th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 12px 16px;
+    text-align: left;
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .doc-table td {
+    padding: 14px 16px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--paper-2);
+    color: var(--ink-2);
+  }
+
+  .doc-table tbody tr { background: white; cursor: pointer; }
+  .doc-table tbody tr:hover { background: var(--accent-light); }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .status-draft { background: var(--paper-3); color: var(--ink-2); }
+  .status-sent { background: #e8f0fb; color: #1b4f8a; }
+  .status-paid { background: #e8f5ee; color: #2d6a4f; }
+  .status-overdue { background: #fbeaec; color: #9b2335; }
+
+  .editor-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .editor-paper {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+
+  .editor-header {
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 1px solid var(--paper-2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .doc-type-toggle {
+    display: flex;
+    background: var(--paper-2);
+    border-radius: 10px;
+    padding: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .doc-type-btn {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--ink-3);
+    transition: all 0.2s;
+  }
+
+  .doc-type-btn.active {
+    background: white;
+    color: var(--accent);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .doc-number-display { text-align: right; }
+  .doc-num-label { font-size: 10px; color: var(--ink-3); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+  .doc-num-val { font-family: 'DM Mono', monospace; font-size: 1.2rem; font-weight: 600; color: var(--ink); margin-top: 2px; }
+
+  .editor-body { padding: 2rem 2.5rem; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .field-group { margin-bottom: 1.2rem; }
+
+  .field-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .field-input {
+    width: 100%;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    outline: none;
+  }
+
+  .field-input:focus { border-color: var(--accent); background: white; }
+  textarea.field-input { resize: vertical; min-height: 80px; }
+
+  .patient-split-grid {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .items-section { margin-top: 2rem; }
+
+  .items-header {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 100px 110px 110px 40px;
+    gap: 10px;
+    padding: 10px;
+    background: var(--paper-2);
+    border-radius: 8px 8px 0 0;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .items-body {
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+  }
+
+  .line-item {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 100px 110px 110px 40px;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid var(--paper-2);
+    align-items: start;
+    background: white;
+  }
+
+  .line-item:last-child { border-bottom: none; }
+
+  .item-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 13.5px;
+    color: var(--ink);
+    text-align: right;
+    padding-top: 10px;
+    font-weight: 600;
+  }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-3);
+    font-size: 14px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+  }
+
+  .remove-btn:hover { background: var(--red-light); color: var(--red); }
+
+  .add-item-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    padding: 12px 0;
+  }
+
+  .totals-section {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .totals-box { width: 320px; background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); }
+  .totals-row { display: flex; justify-content: space-between; padding: 10px 14px; font-size: 13.5px; }
+  .totals-row.grand { background: #0f2541; border-radius: 0 0 var(--radius) var(--radius); padding: 14px; color: white; }
+  .totals-row.grand .tot-val { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 600; }
+
+  .editor-footer { padding: 1.5rem 2.5rem; border-top: 1px solid var(--paper-2); display: flex; gap: 12px; background: var(--paper); }
+
+  .panel-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--shadow); margin-bottom: 1rem; }
+  .panel-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); margin-bottom: 1rem; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,37,65,0.4);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    backdrop-filter: blur(3px);
+  }
+
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal { background: white; border-radius: var(--radius-lg); width: 850px; max-width: 95vw; box-shadow: var(--shadow-lg); overflow: hidden; }
+  .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--paper-2); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-weight: 700; font-size: 1.2rem; }
+  .modal-body { padding: 2rem; max-height: 75vh; overflow-y: auto; }
+  .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--paper-2); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* Print Medical Document Template Elements */
+  .preview-wrapper { font-family: 'Plus Jakarta Sans', sans-serif; background: white; color: #111; }
+  .preview-logo-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .medical-brand { display: flex; align-items: center; gap: 16px; }
+  .medical-brand img { height: 55px; width: auto; object-fit: contain; }
+  .preview-clinic-title { font-size: 20px; font-weight: 700; color: #1b4f8a; }
+  .medical-hospital-sub { font-size: 12px; color: #555; margin-top: 4px; line-height: 1.4; }
+  .preview-title-block { text-align: right; }
+  .preview-doc-title { font-size: 26px; font-weight: 700; text-transform: uppercase; color: #1b4f8a; }
+  .preview-doc-no { font-family: 'DM Mono', monospace; font-size: 14px; color: #444; margin-top: 4px; font-weight: 600; }
+  .preview-hr { height: 4px; background: #1b4f8a; border: none; margin-bottom: 25px; border-radius: 2px; }
+  .preview-meta-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; margin-bottom: 30px; }
+  .meta-col-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #777; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .meta-col-text { font-size: 13.5px; line-height: 1.5; color: #222; }
+  .preview-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+  .preview-table th { background: #f0f4f8; padding: 10px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #1b4f8a; text-align: left; }
+  .preview-table td { padding: 12px; font-size: 13px; border-bottom: 1px solid #e1e6eb; vertical-align: top; }
+  .preview-totals-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .preview-totals-table td { padding: 6px 12px; font-size: 13px; text-align: right; }
+  .preview-totals-table tr.grand-row td { background: #0f2541; color: white; font-weight: 700; font-size: 14px; padding: 10px 12px; border-radius: 4px; }
+  .preview-notes-pane { background: #f9f9f9; border-left: 4px solid #2d6a4f; padding: 14px; margin-top: 10px; border-radius: 4px; }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #0f2541;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    z-index: 999;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--ink-3); }
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+
+  @media print {
+    header, .sidebar, .editor-footer, .side-panel, .page-header, .doc-filters, .modal-header, .modal-footer { display: none !important; }
+    body, .main { background: white; padding: 0; }
+    .modal { box-shadow: none; border: none; max-width: 100% !important; width: 100% !important; }
+    .modal-body { max-height: none !important; overflow: visible !important; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <!-- <img src="https://cdn.prod.website-files.com/69d868968956a2d99f0d7ee3/69e9ec61dd82a87405a2958d_Ardram_Logo_Horizontal-p-500.png" class="logo-img" alt="Ardram Hospital Logo"> -->
+     <h4 style="color: #fff">MedBillr</h4>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="showView('settings')">⚙ Settings</button>
+    <button class="btn btn-primary" onclick="newDocument()">+ New Entry</button>
+  </div>
+</header>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Overview</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Hospital Billings</div>
+      <div class="nav-item" id="nav-invoices" onclick="showView('invoices')">
+        <span class="nav-icon">🧾</span> Patient Invoices
+        <span class="nav-badge" id="invoice-count">0</span>
+      </div>
+      <div class="nav-item" id="nav-quotes" onclick="showView('quotes')">
+        <span class="nav-icon">📋</span> Patient Quotations
+        <span class="nav-badge" id="quote-count">0</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Configuration</div>
+      <div class="nav-item" id="nav-settings" onclick="showView('settings')">
+        <span class="nav-icon">⚙️</span> Control Settings
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Hospital Billing Portal</div>
+          <div class="page-subtitle">Administrative breakdown & admissions tracking</div>
+        </div>
+        <button class="btn btn-primary" onclick="newDocument()">+ New Medical Entry</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Realized Revenue</div>
+          <div class="stat-value" id="stat-revenue">₹0.00</div>
+          <div class="stat-sub">Paid Patient Receivables</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Clearances</div>
+          <div class="stat-value" id="stat-pending">₹0.00</div>
+          <div class="stat-sub">Unsettled Active Invoices</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Generated Invoices</div>
+          <div class="stat-value" id="stat-inv-count">0</div>
+          <div class="stat-sub" id="stat-inv-sub">0 Discharged accounts</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Quotations Issued</div>
+          <div class="stat-value" id="stat-quote-count">0</div>
+          <div class="stat-sub">Valid clinical workflow evaluations</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink-2);margin-bottom:1rem">Recent Patient Discharges & Invoices</div>
+          <div id="recent-invoices"></div>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink-2);margin-bottom:1rem">Recent Treatment Quotations Issued</div>
+          <div id="recent-quotes"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-invoices">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Patient Invoices</div>
+          <div class="page-subtitle" id="invoice-subtitle">0 Accounts listed</div>
+        </div>
+        <button class="btn btn-primary" onclick="newDocument('invoice')">+ Generate Inpatient Invoice</button>
+      </div>
+      <div class="doc-filters" id="invoice-filters"></div>
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>File No.</th><th>Patient Details</th><th>Treatment Start</th><th>Treatment End</th><th>Gross Billing</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invoice-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-quotes">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Patient Quotations</div>
+          <div class="page-subtitle" id="quote-subtitle">0 Costings active</div>
+        </div>
+        <button class="btn btn-primary" onclick="newDocument('quote')">+ Generate Treatment Quotation</button>
+      </div>
+      <div class="doc-filters" id="quote-filters"></div>
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Quotation No.</th><th>Patient Details</th><th>Treatment Start</th><th>Treatment End</th><th>Estimated Amount</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="quote-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-editor">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="editor-page-title">New Entry</div>
+          <div class="page-subtitle">Populate clinical parameters and line configurations</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="showView('dashboard')">← Back</button>
+          <button class="btn btn-outline" onclick="previewDoc()">👁 Preview Record</button>
+          <button class="btn btn-primary" onclick="saveDoc()">Commit Record</button>
+        </div>
+      </div>
+
+      <div class="editor-layout">
+        <div class="editor-paper">
+          <div class="editor-header">
+            <div class="doc-type-toggle">
+              <button class="doc-type-btn active" id="type-invoice" onclick="setDocType('invoice')">Patient Invoice</button>
+              <button class="doc-type-btn" id="type-quote" onclick="setDocType('quote')">Quotation</button>
+            </div>
+            <div class="doc-number-display">
+              <div class="doc-num-label" id="doc-num-label">Record Identifier</div>
+              <div class="doc-num-val" id="doc-num-display">#INV-001</div>
+            </div>
+          </div>
+
+          <div class="editor-body">
+            <div class="field-group" style="background:#fcfbf7; padding:15px; border-radius:8px; border:1px solid var(--border); margin-bottom: 1.5rem;">
+              <span class="field-label" style="color:var(--accent); font-size:12px; margin-bottom:10px;">📋 Patient Demographics Matrix (Bill To)</span>
+              
+              <div class="patient-split-grid">
+                <div>
+                  <label class="field-label" style="font-size:10px;">Patient Full Name</label>
+                  <input type="text" class="field-input" id="p-name" placeholder="Name of the Patient">
+                </div>
+                <div>
+                  <label class="field-label" style="font-size:10px;">Patient ID / File No.</label>
+                  <input type="text" class="field-input" id="p-id" placeholder="PID">
+                </div>
+                <div>
+                  <label class="field-label" style="font-size:10px;">Age</label>
+                  <input type="text" class="field-input" id="p-age" placeholder="Age">
+                </div>
+                <div>
+                  <label class="field-label" style="font-size:10px;">Gender</label>
+                  <select class="field-input" id="p-gender">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="two-col" style="margin-bottom:0; gap:12px;">
+                <div>
+                  <label class="field-label" style="font-size:10px;">Mobile Number</label>
+                  <input type="text" class="field-input" id="p-phone" placeholder="+91 98765 43210">
+                </div>
+                <div>
+                  <label class="field-label" style="font-size:10px;">Residential Address</label>
+                  <input type="text" class="field-input" id="p-address" placeholder="City, State, Zip">
+                </div>
+              </div>
+            </div>
+
+            <div class="two-col">
+              <div class="field-group">
+                <label class="field-label" id="date-label">Treatment Start Date</label>
+                <input type="date" class="field-input" id="doc-date" onchange="syncTreatmentDates()">
+              </div>
+              <div class="field-group">
+                <label class="field-label" id="due-label">Treatment End Date</label>
+                <input type="date" class="field-input" id="doc-due">
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Medical Center Header Routing (From Address)</label>
+              <textarea class="field-input" id="from-address" placeholder="Hospital Unit, Wing details..."></textarea>
+            </div>
+
+            <div class="items-section">
+              <div class="items-header">
+                <span>Clinical Services &amp; Medical Particulars</span>
+                <span>Diagnosis</span>
+                <span style="text-align:center;">No. of days</span>
+                <span style="text-align:right;">Charges</span>
+                <span style="text-align:right;">Total cost</span>
+                <span></span>
+              </div>
+              <div class="items-body" id="line-items"></div>
+            </div>
+
+            <button class="add-item-btn" onclick="addItem()">＋ Append Medical Line Service</button>
+
+            <div style="margin-top: 15px; background: #f0f4f8; padding: 15px; border-radius: 8px; border: 1px dashed var(--accent);">
+              <span style="font-size:12px; font-weight:700; color:var(--accent);">📋 Inpatient Room Matrix Breakdown Utility</span>
+              <p style="font-size:11.5px; color:var(--ink-2); margin: 4px 0 10px;">Instantly generate and append 28 sequential, day-by-day logs based on your configured Treatment Start Date.</p>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <select class="field-input" id="matrix-diagnosis-select" style="width:220px; padding:6px; font-size:12px; background:white;"></select>
+                <input type="number" class="field-input" id="matrix-rate-input" placeholder="Daily Charge Rate" style="width:150px; padding:6px; font-size:12px; background:white;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="injectTwentyEightDaySequentialMatrix()">Generate 28-Day Chronological Logs</button>
+              </div>
+            </div>
+
+            <div class="totals-section">
+              <div class="totals-box">
+                <div class="totals-row"><span class="tot-label">Clinical Subtotal</span><span class="tot-val" id="subtotal-val">₹0.00</span></div>
+                <div class="totals-row" id="discount-row" style="display:none"><span class="tot-label" id="discount-label">Discretionary Subsidy</span><span class="tot-val" id="discount-val">−₹0.00</span></div>
+                <div class="totals-row" id="tax1-row" style="display:none"><span class="tot-label" id="tax1-label">Medical Cess / GST</span><span class="tot-val" id="tax1-val">₹0.00</span></div>
+                <div class="totals-row grand"><span id="grand-label">Total Outlay Payable</span><span class="tot-val" id="grand-total">₹0.00</span></div>
+              </div>
+            </div>
+
+            <div class="field-group" style="margin-top:2rem">
+              <label class="field-label">Institutional Directives, Medical Terms &amp; Discharge Conditions</label>
+              <textarea class="field-input" id="doc-notes" rows="4"></textarea>
+            </div>
+          </div>
+
+          <div class="editor-footer">
+            <button class="btn btn-success" onclick="saveDoc()" style="flex:1">💾 Commit Entry</button>
+            <button class="btn btn-outline" onclick="previewDoc()">👁 Preview Record Map</button>
+            <button class="btn btn-outline" onclick="printDoc()">🖨 Print Out</button>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <div class="panel-card">
+            <div class="panel-card-title">🧾 Financial Levies &amp; Subsidies</div>
+            <div style="display:flex; flex-direction:column; gap: 12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:12.5px; font-weight:500;"><input type="checkbox" id="chk-discount" onchange="recalc()"> Hospital Subsidy (%)</label>
+                <input type="number" class="field-input" id="discount-pct" value="0" min="0" max="100" oninput="recalc()" style="width:70px; padding:4px 6px;">
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:12.5px; font-weight:500;"><input type="checkbox" id="chk-tax1" onchange="recalc()"> Med Cess / GST (%)</label>
+                <input type="number" class="field-input" id="tax1-pct" value="5" min="0" max="100" oninput="recalc()" style="width:70px; padding:4px 6px;">
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-card-title">💱 Currency Localization</div>
+            <select class="field-input" id="currency-select" onchange="recalc()" style="font-size:13px">
+              <option value="₹">INR (₹)</option>
+              <option value="$">USD ($)</option>
+              <option value="€">EUR (€)</option>
+            </select>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-card-title">🧪 Utility Configurations</div>
+            <button class="btn btn-outline" style="width:100%; font-size:12px; margin-bottom:8px;" onclick="flushPatientFieldsOnly()">Flush Only Patient Demographics</button>
+            <button class="btn btn-outline" style="width:100%; font-size:12px; color:var(--red); border-color:var(--red);" onclick="clearClinicalBuffersOnly()">Flush Only Clinical Items</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-settings">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Global Settings &amp; Clinical Catalogues</div>
+          <div class="page-subtitle">Configure hospital metadata profiles and dropdown options master databases</div>
+        </div>
+      </div>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+        <div>
+          <div class="panel-card">
+            <div class="panel-card-title">🏢 Clinic Identification Profile</div>
+            <div class="field-group"><label class="field-label">Clinic Registered Name</label><input class="field-input" id="biz-clinic-name" placeholder="e.g. Ardram Medical Center"></div>
+            <div class="field-group"><label class="field-label">Clinic Contact Mobile Number</label><input class="field-input" id="biz-clinic-mobile" placeholder="e.g. +91 94460 12345"></div>
+            <div class="field-group"><label class="field-label">Hospital Registered Registration No. (Optional)</label><input class="field-input" id="biz-hosp-no" placeholder="e.g. REG-HOSP-2026-X99"></div>
+            <div class="field-group"><label class="field-label">Institutional GSTIN Code (Optional)</label><input class="field-input" id="biz-gst-no" placeholder="e.g. 07AAAAA1111A1Z1"></div>
+            <div class="field-group"><label class="field-label">Hospital Address Text Profile</label><textarea class="field-input" id="biz-address" rows="3"></textarea></div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Base Settings</button>
+          </div>
+          
+          <div class="panel-card">
+            <div class="panel-card-title">🔢 Unique Running Sequences</div>
+            <div class="two-col">
+              <div class="field-group"><label class="field-label">Invoice Prefix</label><input class="field-input" id="inv-prefix" value="INV-"></div>
+              <div class="field-group"><label class="field-label">Quotation Prefix</label><input class="field-input" id="qut-prefix" value="QUT-"></div>
+            </div>
+            <div class="two-col">
+              <div class="field-group"><label class="field-label">Next Invoice Serial</label><input class="field-input" id="next-inv" type="number" value="1"></div>
+              <div class="field-group"><label class="field-label">Next Quotation Serial</label><input class="field-input" id="next-qut" type="number" value="1"></div>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Base Settings</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel-card">
+            <div class="panel-card-title">📋 Diagnosis Dropdown Management Master</div>
+            <div style="font-size:12px; color:var(--ink-3); margin-bottom:12px;">
+              Enter your clinical diagnosis categories catalog below (one option per text line).
+            </div>
+            <div class="field-group">
+              <label class="field-label">Diagnosis Master Option Lines</label>
+              <textarea class="field-input" id="procedure-catalog-input" style="min-height: 380px; font-family: monospace; font-size: 13px; line-height: 1.6;"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveProceduresCatalog()">Save Diagnosis Catalog Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="preview-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Official Medical Record Map Preview</div>
+      <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal('preview-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="preview-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('preview-modal')">Close Preview</button>
+      <button class="btn btn-outline" onclick="printDoc()">🖨 Print Out Document</button>
+      <button class="btn btn-primary" onclick="saveDoc(); closeModal('preview-modal')">Commit Entry File</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Changes saved to secure storage</div>
+
+<script>
+let state = JSON.parse(localStorage.getItem('medbillr_state_v4') || '{}');
+if (!state.documents) state.documents = [];
+if (!state.settings) state.settings = { 
+  bizClinicName: 'Ardram Therapeutic LLP',
+  bizClinicMobile: '+91 94460 55000',
+  bizHospNo: 'REG-ARDRAM-2026',
+  bizGstNo: '07ARDRAM7712M1Z5',
+  bizAddress:'Neil Rao Towers, EPIP Complex, Whitefield, Bengaluru\nEmail: contact@ardramclinic.org', 
+  invPrefix:'INV-2026-', 
+  qutPrefix:'QUT-2026-', 
+  nextInv:1, 
+  nextQut:1 
+};
+if (!state.procedures) state.procedures = [
+  "Cerebral Palsy",
+  "Stroke Rehabilitation",
+  "Multiple Sclerosis",
+];
+
+let currentDocType = 'invoice';
+let editingId = null;
+let items = [];
+
+function commitToStorage() { localStorage.setItem('medbillr_state_v4', JSON.stringify(state)); }
+function getCurrencySign() { return document.getElementById('currency-select')?.value || '₹'; }
+function formatValue(n, sign) { return `${sign || getCurrencySign()}${Number(n).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`; }
+
+function showView(targetView) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  
+  document.getElementById('view-' + targetView).classList.add('active');
+  const activeNavElement = document.getElementById('nav-' + (targetView === 'editor' ? 'dashboard' : targetView));
+  if (activeNavElement) activeNavElement.classList.add('active');
+  
+  if (targetView === 'dashboard') drawDashboard();
+  if (targetView === 'invoices') drawDocumentCollectionTable('invoice');
+  if (targetView === 'quotes') drawDocumentCollectionTable('quote');
+  if (targetView === 'settings') drawSettingsPanel();
+  
+  refreshCounts();
+}
+
+function newDocument(forcedType) {
+  editingId = null;
+  items = [{ desc:'', category: state.procedures[0] || '', qty:1, price:0 }];
+  
+  // Safe clear arrays inputs logic
+  ['p-name', 'p-id', 'p-age', 'p-phone', 'p-address'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  const genderEl = document.getElementById('p-gender');
+  if(genderEl) genderEl.value = 'Male';
+  
+  const fromEl = document.getElementById('from-address');
+  if(fromEl) fromEl.value = state.settings.bizAddress || '';
+  
+  const currentDateStamp = new Date().toISOString().split('T')[0];
+  if(document.getElementById('doc-date')) document.getElementById('doc-date').value = currentDateStamp;
+  if(document.getElementById('doc-due')) document.getElementById('doc-due').value = currentDateStamp;
+  
+  if(document.getElementById('doc-notes')) {
+    document.getElementById('doc-notes').value = "Authorization verified under registered treatment coverage.\nBalance residual amount to be finalized via Corporate Credit Card or digital UPI at the main Discharge Counter.\nExempted from standard local commercial service taxes under medical care provisions; statutory cess applied.";
+  }
+  
+  if(document.getElementById('chk-discount')) document.getElementById('chk-discount').checked = false;
+  if(document.getElementById('chk-tax1')) document.getElementById('chk-tax1').checked = true;
+  if(document.getElementById('discount-pct')) document.getElementById('discount-pct').value = 0;
+  if(document.getElementById('tax1-pct')) document.getElementById('tax1-pct').value = 5;
+  
+  setDocType(forcedType || 'invoice');
+  populateMatrixSelectors();
+  drawAllocatedLineFields();
+  recalc();
+  showView('editor');
+}
+
+function setDocType(targetType) {
+  currentDocType = targetType;
+  
+  const invBtn = document.getElementById('type-invoice');
+  const qutBtn = document.getElementById('type-quote');
+  if(invBtn) invBtn.classList.toggle('active', targetType === 'invoice');
+  if(qutBtn) qutBtn.classList.toggle('active', targetType === 'quote');
+  
+  const rules = state.settings;
+  const runningSerial = targetType === 'invoice' ? String(rules.nextInv || 1).padStart(3, '0') : String(rules.nextQut || 1).padStart(3, '0');
+  const matchedPrefix = targetType === 'invoice' ? (rules.invPrefix || 'INV-') : (rules.qutPrefix || 'QUT-');
+  
+  if (!editingId && document.getElementById('doc-num-display')) {
+    document.getElementById('doc-num-display').textContent = `#${matchedPrefix}${runningSerial}`;
+  }
+  
+  const titleEl = document.getElementById('editor-page-title');
+  const labelEl = document.getElementById('doc-num-label');
+  const dateLabelEl = document.getElementById('date-label');
+  const grandEl = document.getElementById('grand-label');
+  
+  // Find the closest row containing the date fields to toggle visibility easily
+  const dateRowEl = document.getElementById('doc-date')?.closest('.two-col');
+  
+  if (targetType === 'invoice') {
+    if(titleEl) titleEl.textContent = 'Patient Discharge Billing System';
+    if(labelEl) labelEl.textContent = 'Invoice Reference Sequence';
+    if(dateLabelEl) dateLabelEl.textContent = 'Treatment Start Date';
+    if(grandEl) grandEl.textContent = 'Total Outlay Payable';
+    if(dateRowEl) dateRowEl.style.display = 'grid'; // Show dates for Invoice
+  } else {
+    if(titleEl) titleEl.textContent = 'Treatment Costing Quotation';
+    if(labelEl) labelEl.textContent = 'Quotation Evaluation Code';
+    if(grandEl) grandEl.textContent = 'Estimated Treatment Outlay';
+    if(dateRowEl) dateRowEl.style.display = 'none'; // Hide dates entirely for Quotation
+  }
+  recalc();
+}
+
+// function setDocType(targetType) {
+//   currentDocType = targetType;
+  
+//   const invBtn = document.getElementById('type-invoice');
+//   const qutBtn = document.getElementById('type-quote');
+//   if(invBtn) invBtn.classList.toggle('active', targetType === 'invoice');
+//   if(qutBtn) qutBtn.classList.toggle('active', targetType === 'quote');
+  
+//   const rules = state.settings;
+//   const runningSerial = targetType === 'invoice' ? String(rules.nextInv || 1).padStart(3, '0') : String(rules.nextQut || 1).padStart(3, '0');
+//   const matchedPrefix = targetType === 'invoice' ? (rules.invPrefix || 'INV-') : (rules.qutPrefix || 'QUT-');
+  
+//   if (!editingId && document.getElementById('doc-num-display')) {
+//     document.getElementById('doc-num-display').textContent = `#${matchedPrefix}${runningSerial}`;
+//   }
+  
+//   const titleEl = document.getElementById('editor-page-title');
+//   const labelEl = document.getElementById('doc-num-label');
+//   const dateEl = document.getElementById('date-label');
+//   const dueEl = document.getElementById('due-label');
+//   const grandEl = document.getElementById('grand-label');
+  
+//   if (targetType === 'invoice') {
+//     if(titleEl) titleEl.textContent = 'Patient Discharge Billing System';
+//     if(labelEl) labelEl.textContent = 'Invoice Reference Sequence';
+//     if(dateEl) dateEl.textContent = 'Treatment Start Date';
+//     if(dueEl) dueEl.textContent = 'Treatment End Date';
+//     if(grandEl) grandEl.textContent = 'Total Outlay Payable';
+//   } else {
+//     if(titleEl) titleEl.textContent = 'Treatment Costing Quotation';
+//     if(labelEl) labelEl.textContent = 'Quotation Evaluation Code';
+//     if(dateEl) dateEl.textContent = 'Treatment Start Date';
+//     if(dueEl) dueEl.textContent = 'Treatment End Date';
+//     if(grandEl) grandEl.textContent = 'Estimated Treatment Outlay';
+//   }
+//   recalc();
+// }
+
+function syncTreatmentDates() {
+  const startDate = document.getElementById('doc-date')?.value;
+  const dueEl = document.getElementById('doc-due');
+  if(startDate && dueEl) {
+    dueEl.value = startDate;
+  }
+}
+
+function addItem() {
+  items.push({ desc:'', category: state.procedures[0] || '', qty:1, price:0 });
+  drawAllocatedLineFields();
+  recalc();
+}
+
+function injectTwentyEightDaySequentialMatrix() {
+  const selectedDiag = document.getElementById('matrix-diagnosis-select')?.value;
+  const rawDailyRate = parseFloat(document.getElementById('matrix-rate-input')?.value) || 0;
+  const rawBaseDateText = document.getElementById('doc-date')?.value;
+  
+  if(rawDailyRate <= 0) {
+    alert("Please assign a valid daily unit pricing configuration rate.");
+    return;
+  }
+  if(!rawBaseDateText) {
+    alert("Please configure a Treatment Start Date to initialize sequential logs generation.");
+    return;
+  }
+  
+  if(items.length === 1 && items[0].desc === '' && items[0].price === 0) {
+    items = [];
+  }
+  
+  let processingDate = new Date(rawBaseDateText);
+  
+  for(let i = 1; i <= 28; i++) {
+    const formattedLineDateStr = processingDate.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    items.push({
+      desc: `Inpatient Accommodations Charge Log Line Entry — [Day ${String(i).padStart(2, '0')}] — Date: ${formattedLineDateStr}`,
+      category: selectedDiag,
+      qty: 1,
+      price: rawDailyRate
+    });
+    processingDate.setDate(processingDate.getDate() + 1);
+  }
+  
+  processingDate.setDate(processingDate.getDate() - 1);
+  const endEl = document.getElementById('doc-due');
+  if(endEl) endEl.value = processingDate.toISOString().split('T')[0];
+  
+  drawAllocatedLineFields();
+  recalc();
+  fireToast("✓ 28 separate consecutive daily log rows generated smoothly");
+}
+
+function removeItem(idx) {
+  if (items.length === 1) {
+    items = [{ desc:'', category: state.procedures[0] || '', qty:1, price:0 }];
+  } else {
+    items.splice(idx, 1);
+  }
+  drawAllocatedLineFields();
+  recalc();
+}
+
+function populateMatrixSelectors() {
+  const diagDropdown = document.getElementById('matrix-diagnosis-select');
+  if(diagDropdown) {
+    diagDropdown.innerHTML = state.procedures.map(p => `<option value="${p}">${p}</option>`).join('');
+  }
+}
+
+function drawAllocatedLineFields() {
+  const container = document.getElementById('line-items');
+  if(!container) return;
+  container.innerHTML = items.map((it, idx) => `
+    <div class="line-item">
+      <textarea class="field-input" rows="1" placeholder="Describe clinical particulars..." oninput="items[${idx}].desc=this.value" style="font-size:13px;">${it.desc}</textarea>
+      
+      <select class="field-input" onchange="items[${idx}].category=this.value; recalc()" style="font-size:13px;">
+        ${state.procedures.map(proc => `<option value="${proc}" ${it.category === proc ? 'selected' : ''}>${proc}</option>`).join('')}
+      </select>
+      
+      <input class="field-input" type="number" min="1" placeholder="1" value="${it.qty}" oninput="items[${idx}].qty=parseInt(this.value)||0;recalc()" style="text-align:center; font-size:13px;">
+      
+      <input class="field-input" type="number" min="0" step="0.01" placeholder="0.00" value="${it.price || ''}" oninput="items[${idx}].price=parseFloat(this.value)||0;recalc()" style="text-align:right; font-family:'DM Mono', monospace; font-size:13px;">
+      
+      <div class="item-amount" id="item-amt-${idx}">₹0.00</div>
+      
+      <button class="remove-btn" onclick="removeItem(${idx})">✕</button>
+    </div>
+  `).join('');
+  recalc();
+}
+
+function recalc() {
+  const currentSign = getCurrencySign();
+  let subtotal = 0;
+  
+  items.forEach((it, idx) => {
+    const grossLineAmt = (it.qty || 0) * (it.price || 0);
+    subtotal += grossLineAmt;
+    const lineTarget = document.getElementById(`item-amt-${idx}`);
+    if (lineTarget) lineTarget.textContent = formatValue(grossLineAmt, currentSign);
+  });
+
+  const discTriggered = document.getElementById('chk-discount')?.checked || false;
+  const discPercent = parseFloat(document.getElementById('discount-pct')?.value) || 0;
+  const computedSubsidy = discTriggered ? (subtotal * discPercent / 100) : 0;
+  const netAfterSubsidy = subtotal - computedSubsidy;
+
+  const cessTriggered = document.getElementById('chk-tax1')?.checked || false;
+  const cessPercent = parseFloat(document.getElementById('tax1-pct')?.value) || 0;
+  const computedCess = cessTriggered ? (netAfterSubsidy * cessPercent / 100) : 0;
+  const absoluteGrandTotal = netAfterSubsidy + computedCess;
+
+  const subEl = document.getElementById('subtotal-val');
+  if(subEl) subEl.textContent = formatValue(subtotal, currentSign);
+  
+  const discRow = document.getElementById('discount-row');
+  if(discRow) discRow.style.display = discTriggered ? '' : 'none';
+  const discValEl = document.getElementById('discount-val');
+  if(discValEl) discValEl.textContent = `−${formatValue(computedSubsidy, currentSign)}`;
+  
+  const taxRow = document.getElementById('tax1-row');
+  if(taxRow) taxRow.style.display = cessTriggered ? '' : 'none';
+  const taxLblEl = document.getElementById('tax1-label');
+  if(taxLblEl) taxLblEl.textContent = `Medical Cess / GST (${cessPercent}%)`;
+  const taxValEl = document.getElementById('tax1-val');
+  if(taxValEl) taxValEl.textContent = formatValue(computedCess, currentSign);
+  
+  const grandEl = document.getElementById('grand-total');
+  if(grandEl) grandEl.textContent = formatValue(absoluteGrandTotal, currentSign);
+}
+
+function harvestEditorData() {
+  const currentSign = getCurrencySign();
+  const discTriggered = document.getElementById('chk-discount')?.checked || false;
+  const cessTriggered = document.getElementById('chk-tax1')?.checked || false;
+  
+  let subtotal = items.reduce((acc, current) => acc + ((current.qty || 0) * (current.price || 0)), 0);
+  const discPercent = parseFloat(document.getElementById('discount-pct')?.value) || 0;
+  const computedSubsidy = discTriggered ? (subtotal * discPercent / 100) : 0;
+  const netAfterSubsidy = subtotal - computedSubsidy;
+  
+  const cessPercent = parseFloat(document.getElementById('tax1-pct')?.value) || 0;
+  const computedCess = cessTriggered ? (netAfterSubsidy * cessPercent / 100) : 0;
+  const absoluteGrandTotal = netAfterSubsidy + computedCess;
+
+  return {
+    id: editingId || Date.now().toString(),
+    type: currentDocType,
+    number: document.getElementById('doc-num-display')?.textContent || '#000',
+    fromAddress: document.getElementById('from-address')?.value || '',
+    
+    // Explicit mappings for patient demographics fields
+    patientName: document.getElementById('p-name')?.value || '',
+    patientId: document.getElementById('p-id')?.value || '',
+    patientAge: document.getElementById('p-age')?.value || '',
+    patientGender: document.getElementById('p-gender')?.value || 'Male',
+    patientPhone: document.getElementById('p-phone')?.value || '',
+    patientAddress: document.getElementById('p-address')?.value || '',
+    
+    date: document.getElementById('doc-date')?.value || '',
+    due: document.getElementById('doc-due')?.value || '',
+    items: JSON.parse(JSON.stringify(items)),
+    notes: document.getElementById('doc-notes')?.value || '',
+    currency: currentSign,
+    subtotal, discTriggered, discPercent, computedSubsidy,
+    cessTriggered, cessPercent, computedCess,
+    grand: absoluteGrandTotal,
+    status: editingId ? (state.documents.find(d => d.id === editingId) || {}).status || 'draft' : 'draft',
+    createdAt: editingId ? (state.documents.find(d => d.id === editingId) || {}).createdAt || Date.now() : Date.now()
+  };
+}
+
+function saveDoc() {
+  try {
+    const packingObj = harvestEditorData();
+    const matchedIndex = state.documents.findIndex(d => d.id === packingObj.id);
+    
+    if (matchedIndex >= 0) {
+      state.documents[matchedIndex] = packingObj;
+    } else {
+      state.documents.push(packingObj);
+      if (packingObj.type === 'invoice') {
+        state.settings.nextInv = (parseInt(state.settings.nextInv) || 1) + 1;
+      } else {
+        state.settings.nextQut = (parseInt(state.settings.nextQut) || 1) + 1;
+      }
+    }
+    commitToStorage();
+    fireToast('✓ Entry successfully saved to clinic databases');
+    refreshCounts();
+    showView(packingObj.type === 'invoice' ? 'invoices' : 'quotes');
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function previewDoc() {
+  try {
+    const currentSnapshot = harvestEditorData();
+    const contentContainer = document.getElementById('preview-content');
+    if(contentContainer) contentContainer.innerHTML = constructPrintReadyHTML(currentSnapshot);
+    openModal('preview-modal');
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function constructPrintReadyHTML(targetObj) {
+  const currentSign = targetObj.currency || '₹';
+  const labelMapping = targetObj.type === 'invoice' ? 'Patient Invoice' : 'Quotation';
+  
+  // let temporalLogsBlock = `
+  //   <strong>Treatment Start Date:</strong> ${targetObj.date || '—'}<br>
+  //   <strong>Treatment End Date:</strong> ${targetObj.due || '—'}
+  // `;
+  let temporalLogsBlock = '';
+  if (targetObj.type === 'invoice') {
+    temporalLogsBlock = `
+      <strong>Treatment Start Date:</strong> ${targetObj.date || '—'}<br>
+      <strong>Treatment End Date:</strong> ${targetObj.due || '—'}
+    `;
+  } else {
+    // Strips out dates completely for quotation view, rendering only an empty text footprint block
+    temporalLogsBlock = ``;
+  }
+
+  let institutionalMetadata = '';
+  if (state.settings.bizHospNo) institutionalMetadata += `| <strong>Reg No:</strong> ${state.settings.bizHospNo}`;
+  if (state.settings.bizGstNo) institutionalMetadata += ` | <strong>GSTIN:</strong> ${state.settings.bizGstNo}`;
+
+  return `
+  <div class="preview-wrapper">
+    <div class="preview-logo-header">
+      <div class="medical-brand">
+        <img src="https://cdn.prod.website-files.com/69d868968956a2d99f0d7ee3/69e9ec61dd82a87405a2958d_Ardram_Logo_Horizontal-p-500.png" alt="Clinic Brand Header">
+        <div>
+          <div class="preview-clinic-title">${state.settings.bizClinicName}</div>
+          <div class="medical-hospital-sub" style="white-space:pre-line; font-weight:500; margin-top:3px; color:#444;">
+            <strong>Contact No:</strong> ${state.settings.bizClinicMobile} ${institutionalMetadata}
+            \n${targetObj.fromAddress}
+          </div>
+        </div>
+      </div>
+      <div class="preview-title-block">
+        <div class="preview-doc-title">${labelMapping}</div>
+        <div class="preview-doc-no">${targetObj.number}</div>
+      </div>
+    </div>
+    
+    <div class="preview-hr"></div>
+    
+    <div class="preview-meta-grid">
+      <div>
+        <div class="meta-col-title">Bill To</div>
+        <div class="meta-col-text">
+          <strong>Patient:</strong> ${targetObj.patientName || '—'}<br>
+          <strong>ID/File No:</strong> ${targetObj.patientId || '—'} | <strong>Age/Gender:</strong> ${targetObj.patientAge || '—'} / ${targetObj.patientGender || '—'}<br>
+          <strong>Phone:</strong> ${targetObj.patientPhone || '—'}<br>
+          <strong>Address:</strong> ${targetObj.patientAddress || '—'}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="meta-col-title">Temporal Sequence Logs</div>
+        <div class="meta-col-text" style="line-height: 1.6;">
+          ${temporalLogsBlock}
+        </div>
+      </div>
+    </div>
+
+    <table class="preview-table">
+      <thead>
+        <tr>
+          <th style="width:45%;">Clinical Services &amp; Medical Particulars</th>
+          <th style="width:25%;">Diagnosis</th>
+          <th style="width:10%; text-align:center;">No. of days</th>
+          <th style="width:10%; text-align:right;">Charges</th>
+          <th style="width:10%; text-align:right;">Total cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${targetObj.items.map(it => `
+          <tr>
+            <td style="white-space:pre-line;">${it.desc || '— Routine Clinical Service —'}</td>
+            <td><span style="font-size:11px; font-weight:600; background:#f0f4f8; padding:2px 6px; border-radius:4px;">${it.category || 'Unassigned'}</span></td>
+            <td style="text-align:center;">${it.qty}</td>
+            <td style="text-align:right; font-family:monospace;">${currentSign}${Number(it.price || 0).toFixed(2)}</td>
+            <td style="text-align:right; font-family:monospace;">${currentSign}${((it.qty || 0) * (it.price || 0)).toFixed(2)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:40px; align-items:start;">
+      <div>
+        ${targetObj.notes ? `
+          <div class="preview-notes-pane">
+            <div class="meta-col-title" style="color:#2d6a4f; margin-bottom:4px;">Directives &amp; Clinical Terms</div>
+            <div style="font-size:12.5px; color:#333; white-space:pre-line; line-height:1.5;">${targetObj.notes}</div>
+          </div>
+        ` : ''}
+      </div>
+      <div>
+        <table class="preview-totals-table">
+          <tr><td>Clinical Subtotal:</td><td style="font-family:monospace; font-weight:600; width:120px;">${currentSign}${Number(targetObj.subtotal || 0).toFixed(2)}</td></tr>
+          ${targetObj.discTriggered ? `<tr><td style="color:#c8601a;">Hospital Subsidy (${targetObj.discPercent}%):</td><td style="font-family:monospace; color:#c8601a;">-${currentSign}${Number(targetObj.computedSubsidy || 0).toFixed(2)}</td></tr>` : ''}
+          ${targetObj.cessTriggered ? `<tr><td>Statutory Cess / GST (${targetObj.cessPercent}%):</td><td style="font-family:monospace;">${currentSign}${Number(targetObj.computedCess || 0).toFixed(2)}</td></tr>` : ''}
+          <tr class="grand-row"><td>Gross Outlay:</td><td style="font-family:monospace;">${currentSign}${Number(targetObj.grand || 0).toFixed(2)}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+function printDoc() {
+  const harvest = harvestEditorData();
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>${harvest.number}</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono&display=swap" rel="stylesheet">
+      <style>
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Plus Jakarta Sans', sans-serif; color:#111; background:white; padding:2cm; }
+        .preview-wrapper { width:100%; }
+        .preview-logo-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+        .medical-brand { display:flex; align-items:center; gap:16px; }
+        .medical-brand img { height:55px; width:auto; object-fit:contain; }
+        .preview-clinic-title { font-size:20px; font-weight:700; color:#1b4f8a; }
+        .medical-hospital-sub { font-size:12px; color:#555; margin-top:4px; line-height:1.4; }
+        .preview-title-block { text-align:right; }
+        .preview-doc-title { font-size:26px; font-weight:700; text-transform:uppercase; color:#1b4f8a; }
+        .preview-doc-no { font-family:'DM Mono', monospace; font-size:14px; color:#444; margin-top:4px; font-weight:600; }
+        .preview-hr { height:4px; background:#1b4f8a; border:none; margin-bottom:25px; border-radius:2px; }
+        .preview-meta-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:30px; margin-bottom:30px; }
+        .meta-col-title { font-size:10px; font-weight:700; text-transform:uppercase; color:#777; letter-spacing:0.05em; margin-bottom:6px; }
+        .meta-col-text { font-size:13.5px; line-height:1.5; color:#222; }
+        .preview-table { width:100%; border-collapse:collapse; margin-bottom:25px; }
+        .preview-table th { background:#f0f4f8; padding:10px 12px; font-size:11px; font-weight:700; text-transform:uppercase; border-bottom:2px solid #1b4f8a; text-align:left; }
+        .preview-table td { padding:12px; font-size:13px; border-bottom:1px solid #e1e6eb; vertical-align:top; }
+        .preview-totals-table { width:100%; border-collapse:collapse; margin-top:10px; }
+        .preview-totals-table td { padding:6px 12px; font-size:13px; text-align:right; }
+        .preview-totals-table tr.grand-row td { background:#0f2541; color:white; font-weight:700; font-size:14px; padding:10px 12px; border-radius:4px; }
+        .preview-notes-pane { background:#f9f9f9; border-left:4px solid #2d6a4f; padding:14px; margin-top:10px; border-radius:4px; }
+        @media print { body { padding:0; } }
+      </style>
+    </head>
+    <body>
+      ${constructPrintReadyHTML(harvest)}
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  setTimeout(() => { printWindow.print(); }, 400);
+}
+
+function drawDocumentCollectionTable(targetType) {
+  const collection = state.documents.filter(d => d.type === targetType);
+  const targetTbody = document.getElementById(targetType === 'invoice' ? 'invoice-tbody' : 'quote-tbody');
+  const targetSub = document.getElementById(targetType === 'invoice' ? 'invoice-subtitle' : 'quote-subtitle');
+  
+  if(targetSub) targetSub.textContent = `${collection.length} Records tracked`;
+
+  if (!targetTbody) return;
+
+  if (collection.length === 0) {
+    targetTbody.innerHTML = `<tr><td colspan="7">
+      <div class="empty-state">
+        <div class="empty-icon">${targetType === 'invoice' ? '🧾' : '📋'}</div>
+        <div style="font-weight:700; font-size:15px; color:var(--ink-2); margin-bottom:4px;">No files mapped</div>
+        <button class="btn btn-primary btn-sm" onclick="newDocument('${targetType}')">+ Initiate Track</button>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  targetTbody.innerHTML = [...collection].reverse().map(doc => {
+    return `
+      <tr onclick="editDoc('${doc.id}')">
+        <td><span style="font-family:'DM Mono', monospace; font-weight:600; color:var(--accent);">${doc.number}</span></td>
+        <td><strong>${doc.patientName || '— Unnamed Patient —'}</strong></td>
+        <td>${doc.date || '—'}</td>
+        <td>${doc.due || '—'}</td>
+        <td><span style="font-family:'DM Mono', monospace; font-weight:600;">${formatValue(doc.grand, doc.currency)}</span></td>
+        <td><span class="status-badge status-${doc.status}"><span class="status-dot"></span>${doc.status}</span></td>
+        <td>
+          <div style="display:flex; gap:6px;" onclick="event.stopPropagation()">
+            <button class="btn btn-outline btn-sm" onclick="toggleStatusCycle('${doc.id}')">Cycle State</button>
+            <button class="btn btn-outline btn-sm" onclick="editDoc('${doc.id}')">Modify</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDoc('${doc.id}')">✕</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  drawFilterStrip(targetType);
+}
+
+function drawFilterStrip(targetType) {
+  const targetStrip = document.getElementById(targetType === 'invoice' ? 'invoice-filters' : 'quote-filters');
+  if(!targetStrip) return;
+  targetStrip.innerHTML = ['All Logs','Draft','Sent','Paid','Overdue'].map((filterLabel, idx) => `
+    <button class="filter-btn ${idx === 0 ? 'active' : ''}" onclick="applyDocumentScopeFilter('${targetType}','${filterLabel}',this)">${filterLabel}</button>
+  `).join('') + `
+    <div class="search-box">
+      <span>🔍</span>
+      <input placeholder="Search files..." oninput="executeDataDiscoveryScope('${targetType}',this.value)">
+    </div>
+  `;
+}
+
+function applyDocumentScopeFilter(targetType, selection, emitterBtn) {
+  document.querySelectorAll(`#${targetType}-filters .filter-btn`).forEach(btn => btn.classList.remove('active'));
+  emitterBtn.classList.add('active');
+  
+  const isolatedCollection = state.documents.filter(d => d.type === targetType && (selection === 'All Logs' || d.status === selection.toLowerCase()));
+  renderScopedRows(targetType, isolatedCollection);
+}
+
+function executeDataDiscoveryScope(targetType, pattern) {
+  const filteredCollection = state.documents.filter(d => d.type === targetType && (
+    (d.patientName || '').toLowerCase().includes(pattern.toLowerCase()) || 
+    d.number.toLowerCase().includes(pattern.toLowerCase())
+  ));
+  renderScopedRows(targetType, filteredCollection);
+}
+
+function renderScopedRows(targetType, subset) {
+  const targetTbody = document.getElementById(targetType === 'invoice' ? 'invoice-tbody' : 'quote-tbody');
+  if (!targetTbody) return;
+  if (!subset.length) {
+    targetTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:3rem; color:var(--ink-3); font-size:13px;">Zero tracking profiles match</td></tr>`;
+    return;
+  }
+  
+  targetTbody.innerHTML = [...subset].reverse().map(doc => {
+    return `
+      <tr onclick="editDoc('${doc.id}')">
+        <td><span style="font-family:'DM Mono', monospace; font-weight:600; color:var(--accent);">${doc.number}</span></td>
+        <td><strong>${doc.patientName || '— Unnamed Patient —'}</strong></td>
+        <td>${doc.date || '—'}</td>
+        <td>${doc.due || '—'}</td>
+        <td><span style="font-family:'DM Mono', monospace; font-weight:600;">${formatValue(doc.grand, doc.currency)}</span></td>
+        <td><span class="status-badge status-${doc.status}"><span class="status-dot"></span>${doc.status}</span></td>
+        <td>
+          <div style="display:flex; gap:6px;" onclick="event.stopPropagation()">
+            <button class="btn btn-outline btn-sm" onclick="toggleStatusCycle('${doc.id}')">Cycle State</button>
+            <button class="btn btn-outline btn-sm" onclick="editDoc('${doc.id}')">Modify</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDoc('${doc.id}')">✕</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function toggleStatusCycle(id) {
+  const targetObj = state.documents.find(d => d.id === id);
+  if (!targetObj) return;
+  
+  const forwardStepMap = { draft:'sent', sent:'paid', paid:'overdue', overdue:'draft' };
+  targetObj.status = forwardStepMap[targetObj.status] || 'draft';
+  commitToStorage();
+  drawDocumentCollectionTable(targetObj.type);
+  fireToast(`Status changed → ${targetObj.status.toUpperCase()}`);
+}
+
+function editDoc(id) {
+  const targetObj = state.documents.find(d => d.id === id);
+  if (!targetObj) return;
+  
+  editingId = id;
+  items = JSON.parse(JSON.stringify(targetObj.items || []));
+  currentDocType = targetObj.type;
+  
+  if(document.getElementById('from-address')) document.getElementById('from-address').value = targetObj.fromAddress || '';
+  
+  // High-reliability restoration array bindings
+  if(document.getElementById('p-name')) document.getElementById('p-name').value = targetObj.patientName || '';
+  if(document.getElementById('p-id')) document.getElementById('p-id').value = targetObj.patientId || '';
+  if(document.getElementById('p-age')) document.getElementById('p-age').value = targetObj.patientAge || '';
+  if(document.getElementById('p-gender')) document.getElementById('p-gender').value = targetObj.patientGender || 'Male';
+  if(document.getElementById('p-phone')) document.getElementById('p-phone').value = targetObj.patientPhone || '';
+  if(document.getElementById('p-address')) document.getElementById('p-address').value = targetObj.patientAddress || '';
+  
+  if(document.getElementById('doc-date')) document.getElementById('doc-date').value = targetObj.date || '';
+  if(document.getElementById('doc-due')) document.getElementById('doc-due').value = targetObj.due || '';
+  if(document.getElementById('doc-notes')) document.getElementById('doc-notes').value = targetObj.notes || '';
+  if(document.getElementById('doc-num-display')) document.getElementById('doc-num-display').textContent = targetObj.number || '';
+  if(document.getElementById('currency-select')) document.getElementById('currency-select').value = targetObj.currency || '₹';
+  
+  if(document.getElementById('chk-discount')) document.getElementById('chk-discount').checked = targetObj.discTriggered || false;
+  if(document.getElementById('discount-pct')) document.getElementById('discount-pct').value = targetObj.discPercent || 0;
+  if(document.getElementById('chk-tax1')) document.getElementById('chk-tax1').checked = targetObj.cessTriggered || false;
+  if(document.getElementById('tax1-pct')) document.getElementById('tax1-pct').value = targetObj.cessPercent || 5;
+  
+  setDocType(targetObj.type);
+  populateMatrixSelectors();
+  drawAllocatedLineFields();
+  showView('editor');
+}
+
+function deleteDoc(id) {
+  if (!confirm('Purge this tracking document file?')) return;
+  state.documents = state.documents.filter(d => d.id !== id);
+  commitToStorage();
+  
+  if (document.getElementById('view-invoices').classList.contains('active')) drawDocumentCollectionTable('invoice');
+  if (document.getElementById('view-quotes').classList.contains('active')) drawDocumentCollectionTable('quote');
+  
+  refreshCounts();
+  drawDashboard();
+  fireToast('🗑 File safely purged');
+}
+
+function drawDashboard() {
+  const docs = state.documents;
+  const invoices = docs.filter(d => d.type === 'invoice');
+  const quotes = docs.filter(d => d.type === 'quote');
+  
+  const computedRevenueVal = invoices.filter(d => d.status === 'paid').reduce((acc, current) => acc + (current.grand || 0), 0);
+  const computedOutstandingVal = invoices.filter(d => ['sent','overdue'].includes(d.status)).reduce((acc, current) => acc + (current.grand || 0), 0);
+
+  if(document.getElementById('stat-revenue')) document.getElementById('stat-revenue').textContent = formatValue(computedRevenueVal);
+  if(document.getElementById('stat-pending')) document.getElementById('stat-pending').textContent = formatValue(computedOutstandingVal);
+  if(document.getElementById('stat-inv-count')) document.getElementById('stat-inv-count').textContent = invoices.length;
+  if(document.getElementById('stat-inv-sub')) document.getElementById('stat-inv-sub').textContent = `${invoices.filter(d => d.status === 'paid').length} Settled files`;
+  if(document.getElementById('stat-quote-count')) document.getElementById('stat-quote-count').textContent = quotes.length;
+
+  const quickRenderListItem = (subset) => subset.length ? subset.map(doc => {
+    return `
+      <div style="background:white; border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="editDoc('${doc.id}')">
+        <div>
+          <div style="font-family:'DM Mono', monospace; font-size:12px; color:var(--ink-3); font-weight:500;">${doc.number}</div>
+          <div style="font-size:13.5px; font-weight:600; color:var(--ink); margin-top:2px;">${doc.patientName || '— Patient Unallocated —'}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'DM Mono', monospace; font-size:13px; font-weight:600;">${formatValue(doc.grand, doc.currency)}</div>
+          <div style="margin-top:4px;"><span class="status-badge status-${doc.status}"><span class="status-dot"></span>${doc.status}</span></div>
+        </div>
+      </div>
+    `;
+  }).join('') : `
+    <div class="empty-state" style="padding:2rem; background:white; border:1px solid var(--border); border-radius:var(--radius);">
+      <div style="font-size:12.5px; font-weight:600; color:var(--ink-3);">Zero logs in this spectrum</div>
+    </div>
+  `;
+
+  if(document.getElementById('recent-invoices')) document.getElementById('recent-invoices').innerHTML = quickRenderListItem([...invoices].reverse().slice(0, 4));
+  if(document.getElementById('recent-quotes')) document.getElementById('recent-quotes').innerHTML = quickRenderListItem([...quotes].reverse().slice(0, 4));
+}
+
+function drawSettingsPanel() {
+  const configs = state.settings;
+  if(document.getElementById('biz-clinic-name')) document.getElementById('biz-clinic-name').value = configs.bizClinicName || '';
+  if(document.getElementById('biz-clinic-mobile')) document.getElementById('biz-clinic-mobile').value = configs.bizClinicMobile || '';
+  if(document.getElementById('biz-hosp-no')) document.getElementById('biz-hosp-no').value = configs.bizHospNo || '';
+  if(document.getElementById('biz-gst-no')) document.getElementById('biz-gst-no').value = configs.bizGstNo || '';
+  if(document.getElementById('biz-address')) document.getElementById('biz-address').value = configs.bizAddress || '';
+  if(document.getElementById('inv-prefix')) document.getElementById('inv-prefix').value = configs.invPrefix || 'INV-';
+  if(document.getElementById('qut-prefix')) document.getElementById('qut-prefix').value = configs.qutPrefix || 'QUT-';
+  if(document.getElementById('next-inv')) document.getElementById('next-inv').value = configs.nextInv || 1;
+  if(document.getElementById('next-qut')) document.getElementById('next-qut').value = configs.nextQut || 1;
+
+  if(document.getElementById('procedure-catalog-input')) document.getElementById('procedure-catalog-input').value = state.procedures.join('\n');
+}
+
+function saveSettings() {
+  state.settings = {
+    bizClinicName: document.getElementById('biz-clinic-name')?.value || '',
+    bizClinicMobile: document.getElementById('biz-clinic-mobile')?.value || '',
+    bizHospNo: document.getElementById('biz-hosp-no')?.value || '',
+    bizGstNo: document.getElementById('biz-gst-no')?.value || '',
+    bizAddress: document.getElementById('biz-address')?.value || '',
+    invPrefix: document.getElementById('inv-prefix')?.value || 'INV-',
+    qutPrefix: document.getElementById('qut-prefix')?.value || 'QUT-',
+    nextInv: parseInt(document.getElementById('next-inv')?.value) || 1,
+    nextQut: parseInt(document.getElementById('next-qut')?.value) || 1
+  };
+  commitToStorage();
+  fireToast('✓ Configurations synchronized');
+}
+
+function saveProceduresCatalog() {
+  const textBlob = document.getElementById('procedure-catalog-input')?.value || '';
+  const linesArray = textBlob.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  
+  if (linesArray.length === 0) {
+    alert('The catalog requires at least one master data category entries line item.');
+    return;
+  }
+  
+  state.procedures = linesArray;
+  commitToStorage();
+  populateMatrixSelectors();
+  fireToast('📋 Diagnosis catalog options master updated');
+}
+
+function refreshCounts() {
+  if(document.getElementById('invoice-count')) document.getElementById('invoice-count').textContent = state.documents.filter(d => d.type === 'invoice').length;
+  if(document.getElementById('quote-count')) document.getElementById('quote-count').textContent = state.documents.filter(d => d.type === 'quote').length;
+}
+
+function openModal(id) { document.getElementById(id)?.classList.add('show'); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('show'); }
+
+function fireToast(msg) {
+  const target = document.getElementById('toast');
+  if(!target) return;
+  target.textContent = msg;
+  target.classList.add('show');
+  setTimeout(() => target.classList.remove('show'), 3000);
+}
+
+function flushPatientFieldsOnly() {
+  if (!confirm('Flush patient demographics split data fields?')) return;
+  ['p-name', 'p-id', 'p-age', 'p-phone', 'p-address'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+}
+
+function clearClinicalBuffersOnly() {
+  if (!confirm('Wipe clinical items out?')) return;
+  items = [{ desc:'', category: state.procedures[0] || '', qty:1, price:0 }];
+  drawAllocatedLineFields();
+  recalc();
+}
+
+// Bootstrap Initialization
+refreshCounts();
+populateMatrixSelectors();
+drawDashboard();
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
+});
+</script>
+</body>
+</html>
