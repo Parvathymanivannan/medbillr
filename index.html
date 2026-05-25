@@ -1554,16 +1554,63 @@ function toggleStatusCycle(id) {
   fireToast(`Status changed → ${targetObj.status.toUpperCase()}`);
 }
 
-function editDoc(id) {
-  const targetObj = state.documents.find(d => d.id === id);
-  if (!targetObj) return;
+// function editDoc(id) {
+//   const targetObj = state.documents.find(d => d.id === id);
+//   if (!targetObj) return;
   
-  editingId = id;
+//   editingId = id;
+//   items = JSON.parse(JSON.stringify(targetObj.items || []));
+//   currentDocType = targetObj.type;
+  
+//   if(document.getElementById('from-address')) document.getElementById('from-address').value = targetObj.fromAddress || '';
+  
+//   if(document.getElementById('p-name')) document.getElementById('p-name').value = targetObj.patientName || '';
+//   if(document.getElementById('p-id')) document.getElementById('p-id').value = targetObj.patientId || '';
+//   if(document.getElementById('p-age')) document.getElementById('p-age').value = targetObj.patientAge || '';
+//   if(document.getElementById('p-gender')) document.getElementById('p-gender').value = targetObj.patientGender || 'Male';
+//   if(document.getElementById('p-phone')) document.getElementById('p-phone').value = targetObj.patientPhone || '';
+//   if(document.getElementById('p-address')) document.getElementById('p-address').value = targetObj.patientAddress || '';
+  
+//   if(document.getElementById('doc-date')) document.getElementById('doc-date').value = targetObj.date || '';
+//   if(document.getElementById('doc-due')) document.getElementById('doc-due').value = targetObj.due || '';
+//   if(document.getElementById('doc-notes')) document.getElementById('doc-notes').value = targetObj.notes || '';
+//   if(document.getElementById('doc-num-display')) document.getElementById('doc-num-display').textContent = targetObj.number || '';
+//   if(document.getElementById('currency-select')) document.getElementById('currency-select').value = targetObj.currency || '₹';
+  
+//   if(document.getElementById('chk-discount')) document.getElementById('chk-discount').checked = targetObj.discTriggered || false;
+//   if(document.getElementById('discount-pct')) document.getElementById('discount-pct').value = targetObj.discPercent || 0;
+//   if(document.getElementById('chk-tax1')) document.getElementById('chk-tax1').checked = targetObj.cessTriggered || false;
+//   if(document.getElementById('tax1-pct')) document.getElementById('tax1-pct').value = targetObj.cessPercent || 5;
+  
+//   setDocType(targetObj.type);
+//   populateMatrixSelectors();
+//   drawAllocatedLineFields();
+//   showView('editor');
+// }
+
+  function editDoc(id) {
+  // Safe-string the incoming look-up parameter to match cloud format structures
+  const targetIdStr = String(id).trim();
+
+  // Robust array scanning: Check both standard 'd.id' and translated spreadsheet 'd.id'
+  const targetObj = state.documents.find(d => {
+    const currentDocIdStr = String(d.id || d["Record ID"] || "").trim();
+    return currentDocIdStr === targetIdStr;
+  });
+
+  if (!targetObj) {
+    console.warn("Record mismatch context. Target execution footprint skipped for ID: " + id);
+    fireToast("⚠️ Could not open record: Naming mismatch detected");
+    return;
+  }
+  
+  editingId = targetObj.id || targetObj["Record ID"];
   items = JSON.parse(JSON.stringify(targetObj.items || []));
   currentDocType = targetObj.type;
   
   if(document.getElementById('from-address')) document.getElementById('from-address').value = targetObj.fromAddress || '';
   
+  // High-reliability restoration array bindings
   if(document.getElementById('p-name')) document.getElementById('p-name').value = targetObj.patientName || '';
   if(document.getElementById('p-id')) document.getElementById('p-id').value = targetObj.patientId || '';
   if(document.getElementById('p-age')) document.getElementById('p-age').value = targetObj.patientAge || '';
